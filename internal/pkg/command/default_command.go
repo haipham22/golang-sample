@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"errors"
 	"go.uber.org/zap"
 	"os"
 	"os/signal"
@@ -9,10 +10,9 @@ import (
 	"syscall"
 )
 
-type Command func()
-
-type CommandHandler interface {
-	CreateNewCommandHandler(logger *zap.SugaredLogger, config config2.Config)
+type DefaultCommand interface {
+	RegisterNewCommandHandler(ctx context.Context)
+	DefaultCommandHandler
 }
 
 type DefaultCommandHandler struct {
@@ -20,14 +20,14 @@ type DefaultCommandHandler struct {
 	config config2.Config
 }
 
-func (c DefaultCommandHandler) Run(repositories []string, command *CommandHandler) error {
+func (c DefaultCommandHandler) Register(repository []string) ([]string, error) {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 	defer cancel()
 
+	if len(repository) <= 0 {
+		return nil, errors.New("empty repository url")
+	}
+
 	<-ctx.Done()
-	return nil
-}
-
-func (c DefaultCommandHandler) execCmd(cmd Command) {
-
+	return repository, nil
 }

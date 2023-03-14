@@ -4,9 +4,9 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
-	"paperback-vbook-converter/internal/pkg/command"
 
 	config2 "paperback-vbook-converter/config"
+	"paperback-vbook-converter/internal/pkg/command"
 )
 
 // convertSourceCmd represents the binance command
