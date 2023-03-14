@@ -5,12 +5,20 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
+)
+
+var (
+	repositories []string
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "paperback-utils",
 	Short: "paperback convert utils",
+	//Run: func(cmd *cobra.Command, args []string) {
+	//	cmd.Flags().StringSliceVarP(&slice, "repo", "s", []string{}, "")
+	//},
 }
 
 func Execute() {
@@ -21,11 +29,20 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize()
+	cobra.OnInitialize(initLog, initConfig)
+	rootCmd.CompletionOptions.HiddenDefaultCmd = true
+	rootCmd.PersistentFlags().StringSliceVarP(&repositories, "repo", "r", []string{}, "repository")
 }
 
-func initDependency() {
-	initLog()
+func initConfig() {
+	// read in environment variables that match
+	viper.AutomaticEnv()
+
+	// If a config file is found, read it in.
+	if err := viper.ReadInConfig(); err == nil {
+		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	}
+	viper.SetDefault("WORKER_PROCESS", 5)
 }
 
 func initLog() {
