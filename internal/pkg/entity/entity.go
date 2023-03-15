@@ -1,8 +1,8 @@
 package entity
 
 var (
-	SourceTypeNovel string = "type"
-	SourceTypeComic string = "comic"
+	SourceTypeNovel = "type"
+	SourceTypeComic = "comic"
 )
 
 type Repository struct {

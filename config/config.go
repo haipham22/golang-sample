@@ -8,16 +8,16 @@ import (
 )
 
 type Config struct {
-	Worker Worker `validate:"required"`
+	Worker worker `validate:"required"`
 }
 
-type Worker struct {
+type worker struct {
 	MaxProcess int64 `mapstructure:"MAX_WORKER" validate:"required" json:"max_process,omitempty"`
 }
 
 func NewConfig(validator *validator.Validate) (*Config, error) {
 	config := &Config{
-		Worker: Worker{
+		Worker: worker{
 			MaxProcess: viper.GetInt64("MAX_WORKER"),
 		},
 	}

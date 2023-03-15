@@ -30,7 +30,7 @@ This is sample command.`,
 
 		obj := command.NewCheckForUpdateCmd(logger, config)
 
-		obj.Run(repositories)
+		_ = obj.Run(repositories)
 		//logger.Fatal(obj.Run(repositories))
 	},
 }

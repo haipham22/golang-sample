@@ -2,6 +2,7 @@ package command
 
 import (
 	"go.uber.org/zap"
+
 	config2 "paperback-vbook-converter/config"
 	"paperback-vbook-converter/internal/pkg/http"
 )
@@ -12,7 +13,7 @@ type CheckForUpdateSource struct {
 }
 
 var (
-	CheckForUpdateCommand string = "CheckForUpdate"
+	CheckForUpdateCommand = "CheckForUpdate"
 )
 
 //type checkForUpdateWorker func(ctx context.Context, repositoryUrl string)
