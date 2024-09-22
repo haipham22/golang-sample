@@ -7,7 +7,7 @@ RUN go mod download
 
 COPY . ./
 
-RUN go build -v -o futures-core
+RUN go build -v -o golang-sample
 
 FROM public.ecr.aws/docker/library/debian:buster-slim
 
@@ -17,6 +17,6 @@ RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -
 
 WORKDIR /app
 
-COPY --from=build /app/futures-core /app/futures-core
+COPY --from=build /app/golang-sample /app/golang-sample
 
-CMD ["/app/futures-core"]
+CMD ["/app/golang-sample"]
