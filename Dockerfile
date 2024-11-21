@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/golang:1.19-buster as build
+FROM public.ecr.aws/docker/library/golang:1.20-buster as build
 
 WORKDIR /app
 
