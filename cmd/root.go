@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"ebookgen/pkg/config"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
-
-	"ebookgen/pkg/config"
 )
 
 var rootCmd = &cobra.Command{

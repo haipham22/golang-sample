@@ -3,17 +3,39 @@
 ## Directory structure
 
 ```
-.
-├── main.go
-├── .env
+golang-sample
 ├── cmd
+│   ├── api.go
 │   ├── root.go
-│   └── another_command.go
+│   ├── sample.go
+│   └── ...
+├── internal // for apps
+│   ├── api
+│   │   ├── errors
+│   │   ├── schemas
+│   │   ├── storages
+│   │   ├── transport
+│   │   └── ...
+│   └── another_packages
+│       └── ....
 ├── pkg
-│   ├── common
-│   └── another_package
-├── ...
-...
+│   ├── config
+│   ├── databases
+│   ├── errors
+│   ├── healthcheck
+│   ├── models
+│   └── utils
+│       ├── string
+│       │   ├── hash.go
+│       │   └── ...
+│       └── ...
+├── scripts
+│   ├── golangci-lint.sh
+│   └── ....
+├── vendor
+├── main.go
+├── README.MD
+└── ...
 ```
 
 ## Getting started
@@ -32,5 +54,5 @@ go mod tidy
 ### Run dev
 
 ```shell
-go run main.go sample
+go run main.go api
 ```
