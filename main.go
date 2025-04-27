@@ -1,6 +1,6 @@
 package main
 
-import "ebookgen/cmd"
+import "golang-sample/cmd"
 
 func main() {
 	cmd.Execute()

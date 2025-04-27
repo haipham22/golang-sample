@@ -18,7 +18,7 @@ type UserRegisterRequest struct {
 }
 
 func (a *authHandler) PostRegister(e echo.Context) error {
-	req, err := a.validateUserRegisterRequest(e)
+	_, err := a.validateUserRegisterRequest(e)
 	if err != nil {
 		return err
 	}

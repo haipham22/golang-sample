@@ -14,6 +14,12 @@ type EnvConfigMap struct {
 		DEBUG bool   `mapstructure:"DEBUG" validate:"required"`
 		ENV   string `mapstructure:"ENV" validate:"required"`
 	} `mapstructure:"APP"`
+	Postgres struct {
+		DSN string `mapstructure:"DSN" validate:"required"`
+	}
+	Redis struct {
+		URL string `mapstructure:"URL"`
+	}
 }
 
 // ENV is global variable for using config in other place
