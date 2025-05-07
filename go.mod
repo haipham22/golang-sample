@@ -1,7 +1,8 @@
 module golang-sample
 
-go 1.23
-toolchain go1.24.1
+go 1.23.0
+
+toolchain go1.23.2
 
 require (
 	github.com/getsentry/sentry-go v0.32.0
