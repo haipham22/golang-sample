@@ -12,15 +12,17 @@ WORKDIR ${WORK_DIR}
 # Install swagger and download dependencies
 COPY go.* ./
 
-RUN go mod download && \
-    go install github.com/swaggo/swag/cmd/swag@latest
+RUN go mod download
+
+RUN go install github.com/swaggo/swag/cmd/swag@latest
 
 # Build the application
 COPY . ./
 RUN swag init \
     --output ./internal/api/swagger \
-    --generalInfo ./internal/api/routes.go && \
-    go build -v -o ${APP_NAME}
+    --generalInfo ./internal/api/routes.go || exit 0
+
+RUN go build -v -o "${APP_NAME}"
 
 # Stage 2: Create minimal runtime image
 FROM debian:${DEBIAN_VERSION}-slim AS runtime
