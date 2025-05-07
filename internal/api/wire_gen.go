@@ -21,8 +21,8 @@ func InitApp(isDebugMode bool, db string, log *zap.SugaredLogger) (*Handler, fun
 		return nil, nil, err
 	}
 	storageStorage := storage.NewStorage(log, gormDB)
-	authAuth := auth.NewAuthHandler(log, storageStorage)
-	handler := NewApiBiz(log, authAuth)
+	controller := auth.NewAuthController(log, storageStorage)
+	handler := NewApiBiz(log, controller)
 	return handler, func() {
 		cleanup()
 	}, nil

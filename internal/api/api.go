@@ -16,10 +16,10 @@ import (
 
 type Handler struct {
 	log  *zap.SugaredLogger
-	auth auth.Auth
+	auth *auth.Controller
 }
 
-func NewApiBiz(log *zap.SugaredLogger, auth auth.Auth) *Handler {
+func NewApiBiz(log *zap.SugaredLogger, auth *auth.Controller) *Handler {
 	return &Handler{
 		log:  log,
 		auth: auth,

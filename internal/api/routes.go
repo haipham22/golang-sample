@@ -6,7 +6,7 @@ import (
 	"golang-sample/internal/api/routes/auth"
 )
 
-func SetAuthRoutes(e *echo.Group, h auth.Auth) {
+func SetAuthRoutes(e *echo.Group, h *auth.Controller) {
 	e.POST("/login", h.PostLogin)
 	e.POST("/register", h.PostRegister)
 }

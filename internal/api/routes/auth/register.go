@@ -10,7 +10,19 @@ import (
 	"golang-sample/internal/api/schemas"
 )
 
-func (a *authHandler) PostRegister(e echo.Context) error {
+// PostRegister godoc
+//
+//	@Summary	Login user
+//	@Description
+//	@Tags		auth
+//	@Accept		json
+//	@Produce	json
+//	@Param		req	body		schemas.UserRegisterRequest	true	"Register request"
+//	@Success	200			{object}	schemas.Response
+//	@Security	BearerAuth
+//	@Router		/api/register [post]
+
+func (a *Controller) PostRegister(e echo.Context) error {
 	_, err := a.validateUserRegisterRequest(e)
 	if err != nil {
 		return err
@@ -26,7 +38,7 @@ func (a *authHandler) PostRegister(e echo.Context) error {
 	)
 }
 
-func (a *authHandler) validateUserRegisterRequest(e echo.Context) (req *schemas.UserRegisterRequest, err error) {
+func (a *Controller) validateUserRegisterRequest(e echo.Context) (req *schemas.UserRegisterRequest, err error) {
 	if err = e.Bind(&req); err != nil {
 		return nil, errors.NewRequestBindingError(err)
 	}
@@ -50,7 +62,7 @@ func (a *authHandler) validateUserRegisterRequest(e echo.Context) (req *schemas.
 	return
 }
 
-func (a *authHandler) validateUniqueField(field, param string, errorCode error) (bool, error) {
+func (a *Controller) validateUniqueField(field, param string, errorCode error) (bool, error) {
 	isExistBy, err := a.storage.IsExistBy(field, param)
 	if err != nil {
 		a.log.Errorf("a.validateUserRegisterRequest: Oops, error while checking if %s is taken: %v", field, err)

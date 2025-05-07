@@ -21,7 +21,7 @@ func InitApp(
 		NewApiBiz,
 		postgres.NewGormDB,
 		wire.NewSet(storage.NewStorage),
-		wire.NewSet(auth.NewAuthHandler),
+		wire.NewSet(auth.NewAuthController),
 	))
 
 	return &Handler{}, nil, nil

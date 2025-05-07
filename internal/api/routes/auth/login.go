@@ -15,7 +15,19 @@ import (
 	"golang-sample/pkg/utils/password"
 )
 
-func (a *authHandler) PostLogin(c echo.Context) (err error) {
+// PostLogin godoc
+//
+//	@Summary	Login user
+//	@Description
+//	@Tags		auth
+//	@Accept		json
+//	@Produce	json
+//	@Param		req	body		schemas.LoginRequest	true	"Login request"
+//	@Success	200			{object}	schemas.Response
+//	@Security	BearerAuth
+//	@Router		/api/login [post]
+
+func (a *Controller) PostLogin(c echo.Context) (err error) {
 	var req schemas.LoginRequest
 	if err = c.Bind(&req); err != nil {
 		return errors.NewRequestBindingError(err)
