@@ -17,13 +17,11 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy source code that's needed for swagger generation
-COPY internal/api ./internal/api
+COPY . .
+
 RUN swag init \
     --output ./internal/api/swagger \
     --generalInfo ./internal/api/routes.go || exit 0
-
-# Copy remaining source code and build
-COPY . .
 
 RUN go build -v -o "${APP_NAME}"
 
