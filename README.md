@@ -56,3 +56,21 @@ go mod tidy
 ```shell
 go run main.go api
 ```
+
+### Generate swagger OpenAPI
+
+Download Swag for Go
+```shell
+go install github.com/swaggo/swag/cmd/swag@latest
+```
+
+Format swag comments on Go code
+```shell
+go fmt
+```
+
+Generate swagger files (for local test)
+```shell
+./scripts/generate-swagger.sh
+```
+
