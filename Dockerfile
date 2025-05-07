@@ -1,24 +1,41 @@
-FROM golang:1.24-bullseye AS build
+# Build arguments for easier maintenance
+ARG GO_VERSION=1.24
+ARG DEBIAN_VERSION=bullseye
+ARG APP_NAME=golang-sample
+ARG WORK_DIR=/app
 
-WORKDIR /app
+# Stage 1: Build the application
+FROM golang:${GO_VERSION}-${DEBIAN_VERSION} AS builder
+ARG WORK_DIR
+WORKDIR ${WORK_DIR}
 
+# Install swagger and download dependencies
 COPY go.* ./
-RUN go mod download
 
+RUN go mod download && \
+    go install github.com/swaggo/swag/cmd/swag@latest
+
+# Build the application
 COPY . ./
+RUN swag init \
+    --output ./internal/api/swagger \
+    --generalInfo ./internal/api/routes.go && \
+    go build -v -o ${APP_NAME}
 
-RUN go install github.com/swaggo/swag/cmd/swag@latest && \
-    swag init --output ./internal/api/swagger --generalInfo ./internal/api/routes.go && \
-    go build -v -o golang-sample
+# Stage 2: Create minimal runtime image
+FROM debian:${DEBIAN_VERSION}-slim AS runtime
+ARG WORK_DIR
+ARG APP_NAME
 
-FROM debian:bullseye-slim
-
-RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    ca-certificates && \
+# Install required certificates
+RUN set -x && \
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+# Setup application
+WORKDIR ${WORK_DIR}
+COPY --from=builder ${WORK_DIR}/${APP_NAME} ${WORK_DIR}/${APP_NAME}
 
-COPY --from=build /app/golang-sample /app/golang-sample
-
-CMD ["/app/golang-sample"]
+# Run the application
+CMD ["${WORK_DIR}/${APP_NAME}"]
