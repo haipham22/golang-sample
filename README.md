@@ -74,3 +74,7 @@ Generate swagger files (for local test)
 ./scripts/generate-swagger.sh
 ```
 
+### TODO
+- [ ] Add more tests
+- [ ] Add ci lint && reviewdog
+- [ ] Add more examples
