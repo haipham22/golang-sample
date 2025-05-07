@@ -20,6 +20,9 @@ type EnvConfigMap struct {
 	Redis struct {
 		URL string `mapstructure:"URL"`
 	}
+	API struct {
+		Secret string `mapstructure:"SECRET"`
+	}
 }
 
 // ENV is global variable for using config in other place

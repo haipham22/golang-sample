@@ -137,3 +137,6 @@ Temporary Items
 
 # Custom project ignore
 .env
+/internal/api/swagger/*
+!/internal/api/swagger/README.md
+!/internal/api/swagger/empty.go

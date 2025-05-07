@@ -10,13 +10,6 @@ import (
 	"golang-sample/internal/api/schemas"
 )
 
-type UserRegisterRequest struct {
-	Username string `form:"username" json:"username" validate:"required"`
-	Password string `form:"password" json:"password" validate:"required"`
-	Email    string `form:"email" json:"email" validate:"required,email"`
-	FullName string `form:"full_name" json:"full_name" validate:"required"`
-}
-
 func (a *authHandler) PostRegister(e echo.Context) error {
 	_, err := a.validateUserRegisterRequest(e)
 	if err != nil {
@@ -33,7 +26,7 @@ func (a *authHandler) PostRegister(e echo.Context) error {
 	)
 }
 
-func (a *authHandler) validateUserRegisterRequest(e echo.Context) (req *UserRegisterRequest, err error) {
+func (a *authHandler) validateUserRegisterRequest(e echo.Context) (req *schemas.UserRegisterRequest, err error) {
 	if err = e.Bind(&req); err != nil {
 		return nil, errors.NewRequestBindingError(err)
 	}
