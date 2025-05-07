@@ -7,7 +7,9 @@ RUN go mod download
 
 COPY . ./
 
-RUN go build -v -o golang-sample
+RUN go install github.com/swaggo/swag/cmd/swag@latest && \
+    swag init --output ./internal/api/swagger --generalInfo ./internal/api/routes.go && \
+    go build -v -o golang-sample
 
 FROM debian:bullseye-slim
 

@@ -23,8 +23,3 @@ func NewAuthHandler(log *zap.SugaredLogger, storage *storage.Storage) Auth {
 		storage: storage,
 	}
 }
-
-func SetAuthRoutes(e *echo.Group, h Auth) {
-	e.POST("/login", h.PostLogin)
-	e.POST("/register", h.PostRegister)
-}

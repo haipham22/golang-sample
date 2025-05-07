@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	echoSwagger "github.com/swaggo/echo-swagger"
 	"go.uber.org/zap"
 
 	"golang-sample/internal/api/middlewares"
@@ -50,9 +51,13 @@ func (h *Handler) ServeHTTP() *echo.Echo {
 
 	e.IPExtractor = echo.ExtractIPFromRealIPHeader()
 
+	if config.ENV.APP.ENV != config.EnvProduction {
+		e.GET("/document/*", echoSwagger.WrapHandler)
+	}
+
 	public := e.Group("/api")
 
-	auth.SetAuthRoutes(public, h.auth)
+	SetAuthRoutes(public, h.auth)
 
 	return e
 }
