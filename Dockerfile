@@ -9,18 +9,21 @@ FROM golang:${GO_VERSION}-${DEBIAN_VERSION} AS builder
 ARG WORK_DIR
 WORKDIR ${WORK_DIR}
 
-# Install swagger and download dependencies
-COPY go.* ./
-
-RUN go mod download
-
+# Install tools first - rarely changes
 RUN go install github.com/swaggo/swag/cmd/swag@latest
 
-# Build the application
-COPY . ./
+# Copy only dependency files first
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source code that's needed for swagger generation
+COPY internal/api ./internal/api
 RUN swag init \
     --output ./internal/api/swagger \
     --generalInfo ./internal/api/routes.go || exit 0
+
+# Copy remaining source code and build
+COPY . .
 
 RUN go build -v -o "${APP_NAME}"
 
