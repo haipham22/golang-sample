@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: go-oif
+        name: go-oif
+        entry: go-oif ./...
+        language: system
+        types: [ go ]
+        pass_filenames: false
