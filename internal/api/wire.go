@@ -19,7 +19,7 @@ func InitApp(
 	log *zap.SugaredLogger,
 ) (*Handler, func(), error) {
 	panic(wire.Build(
-		NewApiBiz,
+		NewHandler,
 		echo.New,
 		postgres.NewGormDB,
 		wire.NewSet(storage.NewStorage),

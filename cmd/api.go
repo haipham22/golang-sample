@@ -48,6 +48,7 @@ This is sample command.`,
 
 		serverFunc, err := apiHandler.CreateServer(port)
 		go func() {
+			log.Info("Server started on port :", port)
 			if err = serverFunc.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 				log.Fatalf("shutting down the server. Err: %v", err)
 			}
@@ -66,6 +67,6 @@ This is sample command.`,
 func init() {
 	rootCmd.AddCommand(apiServerCmd)
 
-	apiServerCmd.Flags().Int64("port", 8000, "API port listening")
+	apiServerCmd.Flags().Int64("port", 8080, "API port listening")
 	apiServerCmd.Flags().Int64("shutdown_time", 10, "Gracefully shutdown time")
 }

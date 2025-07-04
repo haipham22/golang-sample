@@ -35,7 +35,7 @@ const (
 	readHeaderTimeout = 30 * time.Second
 )
 
-func NewApiBiz(log *zap.SugaredLogger, e *echo.Echo, auth *auth.Controller) *Handler {
+func NewHandler(log *zap.SugaredLogger, e *echo.Echo, auth *auth.Controller) *Handler {
 
 	e.Validator = apiValidator.NewCustomValidator()
 
