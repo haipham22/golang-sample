@@ -2,10 +2,9 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/pkg/errors"
@@ -25,7 +24,7 @@ and usage of using your command. For example:
 
 This is sample command.`,
 	Run: func(cmd *cobra.Command, _ []string) {
-		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer stop()
 
 		log := zap.S()
@@ -45,23 +44,22 @@ This is sample command.`,
 			cleanup()
 			log.Fatalf("Could not initialize api handler: %v", err)
 		}
-
 		defer cleanup()
 
-		e := apiHandler.ServeHTTP()
-
+		serverFunc, err := apiHandler.StartServer(port)
 		go func() {
-			if err := e.Start(fmt.Sprintf(":%d", port)); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			if err = serverFunc.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 				log.Fatalf("shutting down the server. Err: %v", err)
 			}
 		}()
 
 		<-ctx.Done()
-		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(shutdownTime)*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), time.Duration(shutdownTime)*time.Second)
 		defer cancel()
-		if err := e.Shutdown(ctx); err != nil {
+		if err := serverFunc.Shutdown(shutdownCtx); err != nil {
 			log.Fatal(err)
 		}
+		log.Info("Server gracefully stopped")
 	},
 }
 

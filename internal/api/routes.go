@@ -1,12 +1,10 @@
 package api
 
-import (
-	"github.com/labstack/echo/v4"
+func (h *Handler) setRoutes() error {
+	public := h.server.Group("/api")
 
-	"golang-sample/internal/api/routes/auth"
-)
+	public.POST("/login", h.auth.PostLogin)
+	public.POST("/register", h.auth.PostRegister)
 
-func SetAuthRoutes(e *echo.Group, h *auth.Controller) {
-	e.POST("/login", h.PostLogin)
-	e.POST("/register", h.PostRegister)
+	return nil
 }

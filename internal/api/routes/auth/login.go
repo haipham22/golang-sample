@@ -1,14 +1,14 @@
 package auth
 
 import (
-	"github.com/golang-jwt/jwt/v5"
-	"golang-sample/internal/api/errors"
 	"net/http"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/cast"
 
+	"golang-sample/internal/api/errors"
 	"golang-sample/internal/api/schemas"
 	"golang-sample/pkg/config"
 	"golang-sample/pkg/models"

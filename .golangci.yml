@@ -58,6 +58,7 @@ issues:
   exclude-files:
   - main.go
   - cmd/root.go
+  - ^wire_gen\.go$
   exclude-rules:
     - path: _test\.go
       linters:
