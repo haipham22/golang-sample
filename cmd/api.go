@@ -46,7 +46,7 @@ This is sample command.`,
 		}
 		defer cleanup()
 
-		serverFunc, err := apiHandler.StartServer(port)
+		serverFunc, err := apiHandler.CreateServer(port)
 		go func() {
 			if err = serverFunc.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 				log.Fatalf("shutting down the server. Err: %v", err)

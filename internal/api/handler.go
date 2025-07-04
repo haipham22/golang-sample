@@ -70,7 +70,7 @@ func NewApiBiz(log *zap.SugaredLogger, e *echo.Echo, auth *auth.Controller) *Han
 	}
 }
 
-func (h *Handler) StartServer(port int64) (*ServerFunc, error) {
+func (h *Handler) CreateServer(port int64) (*ServerFunc, error) {
 
 	if err := h.setRoutes(); err != nil {
 		h.log.Fatalf("Could not set routes: %v", err)
