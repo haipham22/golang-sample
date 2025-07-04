@@ -5,3 +5,6 @@ go = "1.23"
 "go:github.com/google/wire/cmd/wire" = "latest"
 
 "pre-commit" = "latest"
+
+"npm:@commitlint/cli" = "latest"
+"npm:@commitlint/config-conventional" = "latest"
