@@ -2,9 +2,10 @@ package postgres
 
 import (
 	"github.com/pkg/errors"
-	"golang-sample/pkg/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"golang-sample/pkg/config"
 )
 
 // NewGormDB creates a new gorm postgresql

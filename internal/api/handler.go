@@ -8,7 +8,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	echoSwagger "github.com/swaggo/echo-swagger"
 	"go.uber.org/zap"
 
 	"golang-sample/internal/api/middlewares"
@@ -58,10 +57,6 @@ func NewHandler(log *zap.SugaredLogger, e *echo.Echo, auth *auth.Controller) *Ha
 	)
 
 	e.IPExtractor = echo.ExtractIPFromRealIPHeader()
-
-	if config.ENV.APP.ENV != config.EnvProduction {
-		e.GET("/document/*", echoSwagger.WrapHandler)
-	}
 
 	return &Handler{
 		log:    log,
