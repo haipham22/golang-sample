@@ -39,7 +39,7 @@ This is sample command.`,
 			log.Fatal("Get port config error")
 		}
 
-		apiHandler, cleanup, err := api.InitApp(config.ENV.APP.DEBUG, config.ENV.Postgres.DSN, log)
+		apiHandler, cleanup, err := api.New(config.ENV.Postgres.DSN, log)
 		if err != nil {
 			cleanup()
 			log.Fatalf("Could not initialize api handler: %v", err)

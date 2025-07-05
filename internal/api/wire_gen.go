@@ -16,13 +16,13 @@ import (
 
 // Injectors from wire.go:
 
-func InitApp(isDebugMode bool, db string, log *zap.SugaredLogger) (*Handler, func(), error) {
+func New(dbDSN string, log *zap.SugaredLogger) (*Handler, func(), error) {
 	echoEcho := echo.New()
-	gormDB, cleanup, err := postgres.NewGormDB(isDebugMode, db)
+	db, cleanup, err := postgres.NewGormDB(dbDSN)
 	if err != nil {
 		return nil, nil, err
 	}
-	storageStorage := storage.NewStorage(log, gormDB)
+	storageStorage := storage.NewStorage(log, db)
 	controller := auth.NewAuthController(log, storageStorage)
 	handler := NewHandler(log, echoEcho, controller)
 	return handler, func() {

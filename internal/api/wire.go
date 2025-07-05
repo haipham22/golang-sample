@@ -13,9 +13,8 @@ import (
 	"golang-sample/pkg/postgres"
 )
 
-func InitApp(
-	isDebugMode bool,
-	db string,
+func New(
+	dbDSN string,
 	log *zap.SugaredLogger,
 ) (*Handler, func(), error) {
 	panic(wire.Build(

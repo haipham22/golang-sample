@@ -2,13 +2,13 @@ package postgres
 
 import (
 	"github.com/pkg/errors"
+	"golang-sample/pkg/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 // NewGormDB creates a new gorm postgresql
 func NewGormDB(
-	isDebugMode bool,
 	pgDSN string,
 ) (*gorm.DB, func(), error) {
 
@@ -24,7 +24,7 @@ func NewGormDB(
 		return nil, nil, errors.Wrap(err, "gorm.Open")
 	}
 
-	if isDebugMode {
+	if config.ENV.APP.DEBUG {
 		db = db.Debug()
 	}
 
