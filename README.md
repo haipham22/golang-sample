@@ -4,9 +4,9 @@ A clean, scalable Go API built with clean architecture principles, using Go 1.22
 
 ## 🏗️ Clean Architecture Design System
 
-This project follows Clean Architecture principles with clear separation of concerns across multiple layers:
+This project follows Clean Architecture principles with clear separation of concerns across multiple layers. For detailed architecture documentation, see [`internal/api/ARCHITECTURE.md`](internal/api/ARCHITECTURE.md).
 
-### Architecture Layers
+### Architecture Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -36,52 +36,15 @@ This project follows Clean Architecture principles with clear separation of conc
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Layer Responsibilities
+### Key Features
 
-#### 1. **Presentation Layer** (`internal/api/`)
-- **HTTP Routes**: Route definitions and endpoint mapping
-- **Handlers**: HTTP request/response handling
-- **Middlewares**: Cross-cutting concerns (logging, auth, CORS)
-- **Schemas**: Request/response data structures
+- **Clean Architecture**: Clear separation of concerns with 4 distinct layers
+- **Dependency Injection**: Google Wire for proper dependency management
+- **Interface Segregation**: Abstract contracts for external dependencies
+- **Testability**: Easy mocking and unit testing through abstractions
+- **Scalability**: Modular design for easy extension and maintenance
 
-#### 2. **Application Layer** (`internal/api/routes/`)
-- **Controllers**: Business logic orchestration
-- **Validators**: Input validation and sanitization
-- **Error Handling**: Custom error types and responses
-
-#### 3. **Domain Layer** (`pkg/models/`)
-- **Models**: Core business entities
-- **Interfaces**: Abstract contracts for dependencies
-- **Business Rules**: Domain-specific logic
-
-#### 4. **Infrastructure Layer** (`internal/api/storage/`, `pkg/postgres/`)
-- **Storage**: Data access implementations
-- **Database**: PostgreSQL connection and configuration
-- **External Services**: Third-party integrations
-
-### Dependency Injection
-
-The project uses Google Wire for dependency injection, ensuring:
-- **Inversion of Control**: Dependencies flow inward
-- **Testability**: Easy mocking and unit testing
-- **Loose Coupling**: Components depend on abstractions
-
-```go
-// Wire configuration (internal/api/wire.go)
-func InitApp(
-    isDebugMode bool,
-    db string,
-    log *zap.SugaredLogger,
-) (*Handler, func(), error) {
-    panic(wire.Build(
-        NewHandler,
-        echo.New,
-        postgres.NewGormDB,
-        wire.NewSet(storage.NewStorage),
-        wire.NewSet(auth.NewAuthController),
-    ))
-}
-```
+📖 **For detailed layer responsibilities, implementation guidelines, and best practices, see [`internal/api/ARCHITECTURE.md`](internal/api/ARCHITECTURE.md)**
 
 ## 📁 Project Structure
 
