@@ -308,6 +308,10 @@ volumes:
 - [ ] Add API versioning strategy
 - [ ] Create deployment guides for different environments
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=haipham22/golang-sample&type=Date)](https://www.star-history.com/#haipham22/golang-sample&Date)
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
