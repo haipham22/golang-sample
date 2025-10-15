@@ -10,7 +10,9 @@ ARG WORK_DIR
 WORKDIR ${WORK_DIR}
 
 # Install tools first - rarely changes
-RUN go install github.com/swaggo/swag/cmd/swag@latest
+#RUN go install github.com/swaggo/swag/cmd/swag@latest
+
+COPY --from=ghcr.io/swaggo/swag:latest /bin/swag /usr/local/bin/swag
 
 # Copy only dependency files first
 COPY go.mod go.sum ./
