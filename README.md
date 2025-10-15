@@ -1,5 +1,7 @@
 # Golang Sample API
 
+[![Build docker image](https://github.com/haipham22/golang-sample/actions/workflows/push.yml/badge.svg)](https://github.com/haipham22/golang-sample/actions/workflows/push.yml)
+
 A clean, scalable Go API built with clean architecture principles, using Go 1.22+ and the standard library's net/http package.
 
 ## 🏗️ Clean Architecture Design System
