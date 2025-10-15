@@ -5,19 +5,19 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/go-playground/validator/v10"
+	validatePkg "github.com/go-playground/validator/v10"
 
 	"golang-sample/internal/api/errors"
 	"golang-sample/internal/api/schemas"
 )
 
 type CustomValidator struct {
-	validator *validator.Validate
+	validator *validatePkg.Validate
 }
 
 func (cv *CustomValidator) Validate(i interface{}) error {
 	if err := cv.validator.Struct(i); err != nil {
-		for _, fieldErr := range err.(validator.ValidationErrors) {
+		for _, fieldErr := range err.(validatePkg.ValidationErrors) {
 			return errors.Wrap(errors.ErrValidationError, errors.ErrValidationError, &schemas.ErrorDetail{
 				Property: FormatStructField(fieldErr),
 			})
@@ -27,7 +27,7 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 }
 
 func NewCustomValidator() *CustomValidator {
-	validate := validator.New(validator.WithRequiredStructEnabled())
+	validate := validatePkg.New(validatePkg.WithRequiredStructEnabled())
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
 
@@ -42,7 +42,7 @@ func NewCustomValidator() *CustomValidator {
 	}
 }
 
-func FormatStructField(fieldError validator.FieldError) string {
+func FormatStructField(fieldError validatePkg.FieldError) string {
 	field := fieldError.Field()
 	re := regexp.MustCompile(`\[\d+]`)
 
