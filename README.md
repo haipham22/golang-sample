@@ -170,17 +170,27 @@ golang-sample/
 
 ## Configuration
 
+Create a `.env` file (default) or use environment variables:
+
+**.env File (Default):**
 ```bash
 # Application
-APP_ENV=development          # development | staging | production
+APP_ENV=development
 APP_DEBUG=true
-APP_PORT=8080
 
-# Database (DSN format)
-DB_DSN="host=localhost user=postgres password=password dbname=golang_sample port=5432 sslmode=disable"
+# Database
+APP_POSTGRES_DSN="host=localhost user=postgres password=password dbname=golang_sample port=5432 sslmode=disable"
 
 # JWT
-API_SECRET=your-secret-key   # JWT signing secret
+APP_API_SECRET="your-jwt-secret-key"
+```
+
+**Environment Variables (overrides .env):**
+```bash
+export APP_ENV=development
+export APP_DEBUG=true
+export APP_POSTGRES_DSN="host=localhost user=postgres password=password dbname=golang_sample port=5432 sslmode=disable"
+export APP_API_SECRET="your-jwt-secret-key"
 ```
 
 ## Tech Stack

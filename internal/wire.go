@@ -22,7 +22,7 @@ func New(
 	panic(wire.Build(
 		rest.NewHandler,
 		echo.New,
-		postgres.NewGormDB,
+		governpostgres.New,
 		wire.NewSet(storage.NewStorage),
 		wire.NewSet(auth.NewAuthController),
 		wire.NewSet(health.NewController),

@@ -26,19 +26,27 @@ go mod download
 
 ### 3. Configure Environment
 
-Create a `.env` file or set environment variables:
+Create a `.env` file (default) or use environment variables:
+
+**Option A: .env File (Default)**
+
+```bash
+cp .env.example .env
+vim .env  # Edit with your settings
+```
+
+**Option B: Environment Variables**
 
 ```bash
 # Application
-APP_ENV=development
-APP_DEBUG=true
-APP_PORT=8080
+export APP_ENV=development
+export APP_DEBUG=true
 
 # Database
-DB_DSN="host=localhost user=postgres password=password dbname=golang_sample port=5432 sslmode=disable"
+export APP_POSTGRES_DSN="host=localhost user=postgres password=password dbname=golang_sample port=5432 sslmode=disable"
 
 # JWT
-API_SECRET="your-jwt-secret-key"
+export APP_API_SECRET="your-jwt-secret-key"
 ```
 
 ### 4. Start PostgreSQL

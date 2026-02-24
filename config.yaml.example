@@ -1,0 +1,16 @@
+# Application Configuration
+app:
+  debug: true
+  env: development  # development | staging | production
+
+# PostgreSQL Configuration
+postgres:
+  dsn: "host=localhost user=postgres password=password dbname=golang_sample port=5432 sslmode=disable"
+
+# Redis Configuration (optional)
+redis:
+  url: "redis://localhost:6379/0"
+
+# API Configuration
+api:
+  secret: "your-jwt-secret-key-change-this-in-production"

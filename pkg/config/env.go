@@ -1,63 +1,84 @@
 package config
 
 import (
-	"fmt"
-	"os"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/haipham22/govern/config"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
-// EnvConfigMap define mapping struct field and environment field
+// EnvConfigMap defines the application configuration structure
 type EnvConfigMap struct {
-	APP struct {
-		DEBUG bool   `mapstructure:"DEBUG" validate:"required"`
-		ENV   string `mapstructure:"ENV" validate:"required"`
-	} `mapstructure:"APP"`
+	App struct {
+		Debug bool   `mapstructure:"debug" validate:"required"`
+		Env   string `mapstructure:"env" validate:"required"`
+	} `mapstructure:"app" validate:"required"`
 	Postgres struct {
-		DSN string `mapstructure:"DSN" validate:"required"`
-	}
+		DSN string `mapstructure:"dsn" validate:"required"`
+	} `mapstructure:"postgres"`
 	Redis struct {
-		URL string `mapstructure:"URL"`
-	}
+		URL string `mapstructure:"url"`
+	} `mapstructure:"redis"`
 	API struct {
-		Secret string `mapstructure:"SECRET"`
-	}
+		Secret string `mapstructure:"secret"`
+	} `mapstructure:"api"`
 }
 
-// ENV is global variable for using config in other place
-var ENV EnvConfigMap
+// ENV is global variable for using config in other places
+var ENV *EnvConfigMap
 
-// LoadConfig read env file and loaded to environment and global ENV variable
-func LoadConfig(cfgFile string) error {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		viper.AddConfigPath(".")
-		viper.SetConfigFile(".env")
+// LoadConfig reads config file (YAML or .env) and loads to global ENV variable
+// Uses govern/config for YAML files or viper for .env files
+func LoadConfig(cfgFile string, logger *zap.Logger) (*EnvConfigMap, error) {
+	// Check if file is .env format
+	if strings.HasSuffix(cfgFile, ".env") {
+		return loadFromEnv(cfgFile, logger)
 	}
 
-	viper.AutomaticEnv() // read in environment variables that match
-
-	// If a config file is found, read it in.
-	err := viper.ReadInConfig()
-	if err == nil {
-		_, _ = fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
-	} else {
-		return err
-	}
-
-	err = viper.Unmarshal(&ENV)
+	// Use govern/config for YAML files
+	cfg, err := config.LoadWithOptions[EnvConfigMap](cfgFile,
+		config.WithENVPrefix("APP"),
+		config.WithLogger(logger),
+	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = validator.New().Struct(ENV)
-	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Validate error: %v", err)
-		return err
+	ENV = cfg
+	return cfg, nil
+}
+
+// loadFromEnv loads configuration from .env file using viper
+func loadFromEnv(cfgFile string, _ *zap.Logger) (*EnvConfigMap, error) {
+	v := viper.New()
+
+	// Read .env file
+	v.SetConfigFile(cfgFile)
+	v.SetConfigType("env")
+
+	// Enable ENV variable reading with APP_ prefix
+	v.SetEnvPrefix("APP")
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	v.AutomaticEnv()
+
+	// Read the config file
+	if err := v.ReadInConfig(); err != nil {
+		return nil, err
 	}
 
-	return nil
+	// Unmarshal into struct
+	var cfg EnvConfigMap
+	if err := v.Unmarshal(&cfg); err != nil {
+		return nil, err
+	}
+
+	// Validate
+	if err := validator.New().Struct(&cfg); err != nil {
+		return nil, err
+	}
+
+	ENV = &cfg
+	return &cfg, nil
 }

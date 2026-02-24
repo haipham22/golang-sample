@@ -17,7 +17,7 @@ func (h *Handler) setRoutes() error {
 	// Metrics endpoint (no auth required - for Prometheus scraping)
 	h.server.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 
-	if config.ENV.APP.ENV != config.EnvProduction {
+	if config.ENV.App.Env != config.EnvProduction {
 		h.server.GET("/document/*", echoSwagger.WrapHandler)
 	}
 

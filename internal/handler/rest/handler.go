@@ -42,7 +42,7 @@ func NewHandler(log *zap.SugaredLogger, e *echo.Echo, auth *auth.Controller, hea
 
 	e.Validator = apiValidator.NewCustomValidator()
 
-	if config.ENV.APP.DEBUG {
+	if config.ENV.App.Debug {
 		e.Debug = true
 	}
 

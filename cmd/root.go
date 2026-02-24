@@ -30,16 +30,17 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initDependency)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", ".env", "config file (default is $APPLICATION_DIR/.env)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", ".env", "config file (default is .env)")
 }
 
 func initDependency() {
-	initConfig()
 	initLog()
+	initConfig()
 }
 
 func initConfig() {
-	if err := config.LoadConfig(cfgFile); err != nil {
+	logger := zap.L()
+	if _, err := config.LoadConfig(cfgFile, logger); err != nil {
 		panic("Can't load config from environment")
 	}
 }
