@@ -2,71 +2,79 @@ package cmd
 
 import (
 	"context"
-	"golang-sample/internal"
-	"net/http"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/pkg/errors"
+	govern "github.com/haipham22/govern/graceful"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
+	restHandler "golang-sample/internal/handler/rest"
 	"golang-sample/pkg/config"
 )
 
-// apiServerCmd represents the binance command
-var apiServerCmd = &cobra.Command{
+// serverCmd represents the server command
+var serverCmd = &cobra.Command{
 	Use:   "serverd",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Start production API server with govern integration",
+	Long: `Start the production-ready API server with full govern stack integration.
 
-This is sample command.`,
-	Run: func(cmd *cobra.Command, _ []string) {
-		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-		defer stop()
+Features:
+  - govern/http: Managed HTTP server with configurable timeouts
+  - govern/graceful: Graceful shutdown handling (SIGINT/SIGTERM)
+  - govern/postgres: Database connection pooling
+  - govern/config: Configuration management
 
+Shutdown Sequence:
+  1. Stop accepting new connections
+  2. Wait for active requests to complete (configurable timeout)
+  3. Close database connections
+  4. Release resources
+
+Example:
+  $ serverd --port 8080 --shutdown_time 30`,
+	RunE: func(cmd *cobra.Command, _ []string) error {
 		log := zap.S()
-
-		shutdownTime, err := cmd.Flags().GetInt64("shutdown_time")
-		if err != nil {
-			shutdownTime = 10
-		}
 
 		port, err := cmd.Flags().GetInt64("port")
 		if err != nil {
-			log.Fatal("Get port config error")
+			return err
 		}
 
-		apiHandler, cleanup, err := internal.New(config.ENV.Postgres.DSN, log)
+		shutdownTime, err := cmd.Flags().GetInt64("shutdown_time")
 		if err != nil {
-			cleanup()
-			log.Fatalf("Could not initialize api handler: %v", err)
+			return err
+		}
+
+		// Load config at composition root
+		cfg := config.ENV
+
+		handler, cleanup, err := restHandler.New(log, port, cfg)
+		if err != nil {
+			return err
 		}
 		defer cleanup()
 
-		serverFunc, err := apiHandler.CreateServer(port)
-		go func() {
-			log.Info("Server started on port :", port)
-			if err = serverFunc.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				log.Fatalf("shutting down the server. Err: %v", err)
-			}
-		}()
+		// Create signal context for graceful shutdown
+		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+		defer stop()
 
-		<-ctx.Done()
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), time.Duration(shutdownTime)*time.Second)
-		defer cancel()
-		if err := serverFunc.Shutdown(shutdownCtx); err != nil {
-			log.Fatal(err)
-		}
-		log.Info("Server gracefully stopped")
+		// Run server with govern graceful runner
+		err = govern.Run(
+			ctx,
+			log,
+			time.Duration(shutdownTime)*time.Second,
+			handler,
+		)
+
+		return err
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(apiServerCmd)
+	rootCmd.AddCommand(serverCmd)
 
-	apiServerCmd.Flags().Int64("port", 8080, "API port listening")
-	apiServerCmd.Flags().Int64("shutdown_time", 10, "Gracefully shutdown time")
+	serverCmd.Flags().Int64("port", 8080, "API server port (default: 8080)")
+	serverCmd.Flags().Int64("shutdown_time", 10, "Graceful shutdown timeout in seconds (default: 10)")
 }

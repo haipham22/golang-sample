@@ -1,5 +1,5 @@
 [tools]
-go = "1.23"
+go = "1.25.5"
 "go:github.com/golangci/golangci-lint/v2/cmd/golangci-lint" = "latest"
 "go:github.com/heyvito/go-oif/cmd/go-oif" = "latest"
 "go:github.com/google/wire/cmd/wire" = "latest"
@@ -9,3 +9,5 @@ go = "1.23"
 
 "npm:@commitlint/cli" = "latest"
 "npm:@commitlint/config-conventional" = "latest"
+mockery = "latest"
+swag = "latest"

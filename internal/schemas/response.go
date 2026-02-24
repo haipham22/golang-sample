@@ -2,18 +2,16 @@ package schemas
 
 import "time"
 
-type Response struct {
-	Data       interface{} `json:"data"`
+type Response[T any] struct {
+	Data       T           `json:"data"`
 	Timestamp  int64       `json:"timestamp"`
 	Pagination *Pagination `json:"pagination,omitempty"`
-	StatusCode int         `json:"status_code"`
 }
 
-func NewResponse[T any](data T, statusCode int) Response {
-	return Response{
-		Data:       data,
-		Timestamp:  time.Now().UnixMilli(),
-		StatusCode: statusCode,
+func NewResponse[T any](data T) Response[T] {
+	return Response[T]{
+		Data:      data,
+		Timestamp: time.Now().UnixMilli(),
 	}
 }
 
@@ -23,11 +21,10 @@ type Pagination struct {
 	Total   uint32 `json:"total"`
 }
 
-func NewPaginationResponse[T any](data T, currentPage, perPage, total uint32, statusCode int) Response {
-	return Response{
-		Data:       data,
-		Timestamp:  time.Now().UnixMilli(),
-		StatusCode: statusCode,
+func NewPaginationResponse[T any](data T, currentPage, perPage, total uint32) Response[T] {
+	return Response[T]{
+		Data:      data,
+		Timestamp: time.Now().UnixMilli(),
 		Pagination: &Pagination{
 			Page:    currentPage,
 			PerPage: perPage,

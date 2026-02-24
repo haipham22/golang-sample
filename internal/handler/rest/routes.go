@@ -1,30 +1,31 @@
 package rest
 
 import (
-	"github.com/labstack/echo/v4"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	echoSwagger "github.com/swaggo/echo-swagger"
+	"context"
 
-	"golang-sample/pkg/config"
+	"golang-sample/internal/handler/rest/controllers/auth"
+	"golang-sample/internal/handler/rest/controllers/health"
+	"golang-sample/internal/handler/rest/middlewares"
+
+	"github.com/labstack/echo/v4"
 )
 
-func (h *Handler) setRoutes() error {
-	// Health checks (no auth required - for Kubernetes probes)
-	h.server.GET("/health", h.health.Check)
-	h.server.GET("/readyz", h.health.Ready)
-	h.server.GET("/livez", h.health.Live)
+func initRouter(
+	e *echo.Echo,
+	authCtrl *auth.Controller,
+	healthCtrl *health.Controller,
+) *echo.Echo {
+	// Health check endpoints
+	e.GET("/health", healthCtrl.Check)
+	e.GET("/readyz", healthCtrl.Ready)
+	e.GET("/livez", healthCtrl.Live)
 
-	// Metrics endpoint (no auth required - for Prometheus scraping)
-	h.server.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
+	public := e.Group("/api")
 
-	if config.ENV.App.Env != config.EnvProduction {
-		h.server.GET("/document/*", echoSwagger.WrapHandler)
-	}
+	// Apply rate limiting to auth endpoints (10 requests per minute per IP)
+	// Using context.Background() as the rate limiter runs for the application lifetime
+	public.POST("/login", authCtrl.PostLogin, middlewares.RateLimit(context.Background()))
+	public.POST("/register", authCtrl.PostRegister, middlewares.RateLimit(context.Background()))
 
-	public := h.server.Group("/api")
-
-	public.POST("/login", h.auth.PostLogin)
-	public.POST("/register", h.auth.PostRegister)
-
-	return nil
+	return e
 }

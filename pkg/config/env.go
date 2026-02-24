@@ -1,18 +1,18 @@
 package config
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/haipham22/govern/config"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
 // EnvConfigMap defines the application configuration structure
 type EnvConfigMap struct {
 	App struct {
-		Debug bool   `mapstructure:"debug" validate:"required"`
+		Debug bool   `mapstructure:"debug"`
 		Env   string `mapstructure:"env" validate:"required"`
 	} `mapstructure:"app" validate:"required"`
 	Postgres struct {
@@ -27,10 +27,11 @@ type EnvConfigMap struct {
 }
 
 // ENV is global variable for using config in other places
+// Deprecated: Use dependency injection to pass config instead
 var ENV *EnvConfigMap
 
 // LoadConfig reads config file (YAML or .env) and loads to global ENV variable
-// Uses govern/config for YAML files or viper for .env files
+// Uses govern/config for both YAML and .env files
 func LoadConfig(cfgFile string, logger *zap.Logger) (*EnvConfigMap, error) {
 	// Check if file is .env format (including .env.*, .test-env, etc.)
 	if strings.Contains(cfgFile, ".env") || strings.Contains(cfgFile, "-env") {
@@ -50,35 +51,36 @@ func LoadConfig(cfgFile string, logger *zap.Logger) (*EnvConfigMap, error) {
 	return cfg, nil
 }
 
-// loadFromEnv loads configuration from .env file using viper
-func loadFromEnv(cfgFile string, _ *zap.Logger) (*EnvConfigMap, error) {
-	v := viper.New()
-
-	// Read .env file
-	v.SetConfigFile(cfgFile)
-	v.SetConfigType("env")
-
-	// Enable ENV variable reading with APP_ prefix
-	v.SetEnvPrefix("APP")
-	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	v.AutomaticEnv()
-
-	// Read the config file
-	if err := v.ReadInConfig(); err != nil {
+// loadFromEnv loads configuration from .env file using govern/config
+func loadFromEnv(cfgFile string, logger *zap.Logger) (*EnvConfigMap, error) {
+	cfg, err := config.LoadFromEnvWithOptions[EnvConfigMap](cfgFile,
+		config.WithENVPrefix("APP"),
+		config.WithLogger(logger),
+	)
+	if err != nil {
 		return nil, err
 	}
 
-	// Unmarshal into struct
-	var cfg EnvConfigMap
-	if err := v.Unmarshal(&cfg); err != nil {
-		return nil, err
+	ENV = cfg
+	return cfg, nil
+}
+
+// Validate validates the configuration and returns detailed errors
+func (c *EnvConfigMap) Validate() error {
+	v := validator.New()
+
+	if err := v.Struct(c); err != nil {
+		return fmt.Errorf("config validation failed: %w", err)
 	}
 
-	// Validate
-	if err := validator.New().Struct(&cfg); err != nil {
-		return nil, err
+	// Custom validations
+	if c.App.Env != "development" && c.App.Env != "staging" && c.App.Env != "production" {
+		return fmt.Errorf("invalid APP_ENV: must be development, staging, or production, got: %s", c.App.Env)
 	}
 
-	ENV = &cfg
-	return &cfg, nil
+	if c.API.Secret != "" && len(c.API.Secret) < 32 {
+		return fmt.Errorf("APP_API_SECRET must be at least 32 characters (got %d)", len(c.API.Secret))
+	}
+
+	return nil
 }

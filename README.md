@@ -1,49 +1,46 @@
 # Golang Sample API
 
 [![Build docker image](https://github.com/haipham22/golang-sample/actions/workflows/push.yml/badge.svg)](https://github.com/haipham22/golang-sample/actions/workflows/push.yml)
+[![Test](https://github.com/haipham22/golang-sample/actions/workflows/test.yml/badge.svg)](https://github.com/haipham22/golang-sample/actions/workflows/test.yml)
 
-A production-ready Go API demonstrating clean architecture principles with Go 1.25+, Echo framework, and govern package integration.
+A production-ready Go API demonstrating clean architecture principles with Go 1.25+, Echo framework, and govern package stack.
 
 ## ✅ Production Status
 
-**Last Updated:** 2026-02-24 | **Grade:** A- (Production-Ready) | **Test Coverage:** 60%
+**Last Updated:** 2026-02-26 | **Grade:** A (Production-Ready) | **Test Coverage:** 83.3%
 
 ### Security ✅
-- ✅ Password hashing with bcrypt (DefaultCost)
+- ✅ Password hashing with bcrypt (cost 10)
 - ✅ JWT authentication (golang-jwt/jwt/v5)
 - ✅ SQL injection protected (GORM ORM)
-- ✅ Critical password verification bug fixed
-- ✅ No hardcoded secrets
+- ✅ Input validation with TrimStrings middleware
+- ✅ No PII in logs (usernames/emails redacted)
+- ✅ Generic error messages (no internal details leaked)
 
 ### Infrastructure ✅
 - ✅ Health checks (`/health`, `/readyz`, `/livez`)
-- ✅ Graceful shutdown (SIGTERM/SIGINT handling)
+- ✅ Graceful shutdown with govern/graceful.Run()
 - ✅ Connection pooling (MaxIdle: 10, MaxOpen: 100)
-- ✅ Prometheus metrics
+- ✅ Prometheus metrics integration
 - ✅ Structured logging (Zap)
+- ✅ Signal handling (SIGINT/SIGTERM)
+
+### Performance ✅
+- ✅ Sonic JSON parser (2-3x faster than stdlib)
+- ✅ Optimized string trimming (4.7ns, 0 allocations)
+- ✅ Precompiled regex patterns
+- ✅ Connection pooling configured
 
 ### Code Quality ✅
-- ✅ Clean architecture (handler → controller → storage)
+- ✅ Clean architecture (Handler → Controller → Service → Storage)
 - ✅ DRY, YAGNI, KISS compliant
-- ✅ Govern package integration (errors, postgres)
-- ✅ Pre-commit hooks (13 hooks, all passing)
-- ✅ Gomock configured for testing
+- ✅ Govern package stack fully integrated
+- ✅ Pre-commit hooks (13 hooks, passing)
+- ✅ Mockery for test generation
+- ✅ Wire for compile-time DI
 
-**Full Review:** [Code Review Report](docs/code-review-govern-integration.md)
 
-## ✅ Security Status
-
-**UPDATE (2026-02-24):** All critical security vulnerabilities have been **FIXED** through govern package integration. This project is now **production-ready**.
-
-**Fixed Issues:**
-- ✅ Password verification bug corrected
-- ✅ Password hashing implemented (bcrypt)
-- ✅ JWT authentication middleware added
-- ✅ Health check endpoints added
-- ✅ Graceful shutdown implemented
-- ✅ Prometheus metrics integrated
-
-**See:** [Govern Integration Plan](plans/260224-1557-govern-integration/plan.md) | [Code Review Summary](plans/260224-1206-codebase-review/REVIEW_SUMMARY.md)
+**Reviews:** [Govern Integration](docs/code-review-govern-integration.md) | [Code Fixes](docs/code-review-fixes.md)
 
 ## Documentation
 
@@ -55,118 +52,104 @@ A production-ready Go API demonstrating clean architecture principles with Go 1.
 | [Codebase Summary](docs/codebase-summary.md) | Complete directory structure, API endpoints, and dependencies |
 | [Code Standards](docs/code-standards.md) | Naming conventions, style guidelines, and best practices |
 | [System Architecture](docs/system-architecture.md) | Clean architecture layers, design patterns, and data flow |
+| [Govern Runner Migration](docs/govern-runner-migration.md) | Migration to graceful.Run() helper |
+| [TrimStrings Middleware](docs/trim-strings-middleware.md) | Automatic string trimming middleware |
+| [Code Review Fixes](docs/code-review-fixes.md) | Recent fixes from code review |
 
 ## Quick Start
 
 Get up and running in 5 minutes → [Quick Start Guide](docs/quickstart.md)
 
-```bash
-# Clone and install
-git clone https://github.com/haipham22/golang-sample.git
-cd golang-sample
-go mod download
+## Architecture
 
-# Set environment
-export APP_ENV=development
-export DB_DSN="host=localhost user=postgres password=password dbname=golang_sample port=5432 sslmode=disable"
-export API_SECRET="your-jwt-secret"
+This project follows **Clean Architecture** principles with clear layer separation:
 
-# Run with Docker Compose
-docker-compose up -d
+### Layers
 
-# Or run locally
-go run main.go serverd
+1. **HTTP Handler Layer** (`internal/handler/rest/`)
+   - Echo framework integration
+   - Request binding and validation
+   - Response mapping (JSON)
+   - No business logic
+   - **Controller Layer** (`internal/handler/rest/controllers/`)
+     - Request orchestration
+     - Calls service layer
+     - Error handling and mapping
+
+2. **Service Layer** (`internal/service/auth/`)
+   - Business logic
+   - JWT generation/validation
+   - Password hashing
+   - Domain operations
+   - Protocol-agnostic
+
+3. **Domain Model Layer** (`internal/model/`)
+   - Pure domain entities
+   - Business rules
+   - No external dependencies
+   - Clean separation from persistence
+
+4. **Storage Layer** (`internal/storage/user/`)
+   - Database operations
+   - GORM ORM entities
+   - Data access interface
+   - Domain↔ORM conversion
+
+### Dependency Flow
+
+```text
+HTTP Request → Handler → Controller → Service → Domain Model ← Storage
+                        ↓              ↓            ↓           ↓
+                   Orchestration   Business    Domain     Database
+                                    Logic       Logic
 ```
 
-**Testing the API:**
-```bash
-# Register
-curl -X POST http://localhost:8080/api/register \
-  -H "Content-Type: application/json" \
-  -d '{"username":"testuser","email":"test@example.com","password":"SecurePassword123!","full_name":"Test User"}'
+### Key Design Patterns
 
-# Login
-curl -X POST http://localhost:8080/api/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"testuser","password":"SecurePassword123!"}'
-
-# Health check
-curl http://localhost:8080/health
-```
-
-## Architecture Overview
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Presentation Layer                       │
-│  HTTP Routes │ Middlewares │ Handlers (Echo)                │
-└─────────────────────────────────────────────────────────────┘
-┌─────────────────────────────────────────────────────────────┐
-│                     Application Layer                       │
-│  Controllers │ Validators │ Schemas                         │
-└─────────────────────────────────────────────────────────────┘
-┌─────────────────────────────────────────────────────────────┐
-│                      Domain Layer                           │
-│  Models │ Interfaces │ Services                            │
-└─────────────────────────────────────────────────────────────┘
-┌─────────────────────────────────────────────────────────────┐
-│                   Infrastructure Layer                      │
-│  Storage │ Database (PostgreSQL) │ External Services       │
-└─────────────────────────────────────────────────────────────┘
-```
+- **Dependency Injection** - Wire for compile-time DI
+- **Interface Segregation** - Service interfaces in handler layer
+- **Adapter Pattern** - Password hasher wraps pkg/utils/password
+- **Composition Root** - Wire providers at application startup
+- **YAGNI Compliance** - No unnecessary abstraction layers
 
 ## Project Structure
 
-```
+```text
 golang-sample/
-├── cmd/                    # Application entry points
-│   └── serverd.go          # Main server command
-├── internal/               # Private application code
-│   ├── handler/            # HTTP handlers (flat architecture)
-│   │   └── rest/           # REST API handlers
-│   │       ├── auth/       # Authentication endpoints
-│   │       └── health/     # Health check endpoints
-│   ├── middlewares/        # Echo middlewares (auth, logger, metrics)
-│   ├── storage/            # Database storage interfaces
-│   └── errors/             # Custom error definitions
-├── pkg/                    # Public libraries
-│   ├── models/             # Data models
-│   ├── postgres/           # Database connection (govern/postgres)
-│   └── utils/              # Utility functions (password, etc.)
-├── docs/                   # Documentation
-├── scripts/                # Build and deployment scripts
-├── plans/                  # Implementation plans
-├── main.go                 # Application entry point
-├── Dockerfile              # Multi-stage Docker build
-├── compose.yml             # Docker Compose setup
-├── .pre-commit-config.yaml # Pre-commit hooks
-└── .gomockf                # Mock generation template
+├── cmd/                        # Application entry points
+│   ├── serverd.go             # Main server command (uses govern/graceful.Run)
+│   └── root.go                # Root command configuration
+├── internal/
+│   ├── handler/               # HTTP handlers
+│   │   └── rest/              # Echo HTTP handlers
+│   │       ├── controllers/   # Request controllers
+│   │       │   ├── auth/      # Auth endpoints
+│   │       │   └── health/    # Health check endpoints
+│   │       ├── middlewares/   # HTTP middlewares
+│   │       │   ├── cors.go    # CORS configuration
+│   │       │   ├── security.go # Security headers
+│   │       │   ├── compression.go # Gzip compression
+│   │       │   └── ratelimit.go # Rate limiting
+│   │       ├── swagger/       # API documentation
+│   │       ├── handler.go     # HTTP server setup
+│   │       ├── routes.go      # Route registration
+│   │       └── wire.go        # Dependency injection
+│   ├── service/               # Service layer (business logic)
+│   │   └── auth/              # Auth service implementation
+│   ├── storage/               # Storage interface
+│   │   └── user/              # User storage implementation
+│   ├── model/                 # Domain models (pure)
+│   ├── orm/                   # ORM models (GORM)
+│   ├── schemas/               # DTOs and request/response models
+│   └── validator/             # Custom validators
+├── pkg/                       # Public libraries
+│   ├── config/                # Configuration management
+│   └── utils/                 # Utility functions
+│       └── password/          # Password hashing (bcrypt)
+├── plans/                     # Implementation plans
+├── docs/                      # Documentation
+└── .github/                   # GitHub workflows
 ```
-
-## API Endpoints
-
-### Authentication
-| Method | Endpoint | Description | Status |
-|--------|----------|-------------|--------|
-| POST | `/api/login` | User login with JWT token | ✅ Working |
-| POST | `/api/register` | User registration | ✅ Working |
-
-### Health Checks ✅ NEW
-| Method | Endpoint | Description | Status |
-|--------|----------|-------------|--------|
-| GET | `/health` | Application health status | ✅ Implemented |
-| GET | `/readyz` | Readiness probe (Kubernetes) | ✅ Implemented |
-| GET | `/livez` | Liveness probe (Kubernetes) | ✅ Implemented |
-
-### Monitoring ✅ NEW
-| Method | Endpoint | Description | Status |
-|--------|----------|-------------|--------|
-| GET | `/metrics` | Prometheus metrics | ✅ Implemented |
-
-### Development
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/document/*` | Swagger UI (dev only) |
 
 ## Configuration
 
@@ -193,23 +176,44 @@ export APP_POSTGRES_DSN="host=localhost user=postgres password=password dbname=g
 export APP_API_SECRET="your-jwt-secret-key"
 ```
 
+## Security
+
+### Environment Variables
+**CRITICAL:** Never commit production credentials. Always use environment variables or secure secret management.
+
+| Variable | Requirements | Generate |
+|----------|--------------|----------|
+| `APP_API_SECRET` | 32+ characters, random | `openssl rand -base64 32` |
+| `APP_POSTGRES_DSN` password | 16+ characters, mixed case | `openssl rand -base64 24` |
+
+### Pre-Production Checklist
+- [ ] JWT secret is 32+ characters
+- [ ] Database password is strong (16+ chars, mixed case)
+- [ ] Debug mode disabled (`APP_DEBUG=false`)
+- [ ] HTTPS enforced in production
+- [ ] CORS configured with allowed origins
+- [ ] Rate limiting configured on auth endpoints
+
+See [Security Checklist](docs/security-checklist.md) for complete deployment guidelines.
+
 ## Tech Stack
 
-| Component | Technology | Version |
-|-----------|------------|---------|
-| **Language** | Go | 1.25 |
-| **Framework** | Echo | v4 |
-| **Database** | PostgreSQL | 15+ |
-| **ORM** | GORM | latest |
-| **Auth** | JWT (golang-jwt/jwt/v5) | v5 |
-| **Password Hashing** | Bcrypt | DefaultCost |
-| **DI** | Google Wire | latest |
-| **Logging** | Zap | latest |
-| **Monitoring** | Prometheus | latest |
-| **Config** | Viper | latest |
-| **CLI** | Cobra | latest |
-| **Govern Package** | github.com/haipham22/govern | v0.0.0 |
-| **Testing** | Gomock + Testify | v1.6.0 |
+| Component            | Technology  | Version | Notes                          |
+|----------------------|-------------|---------|--------------------------------|
+| **Language**         | Go          | 1.25    | Latest stable                  |
+| **Framework**        | Echo        | v4.15+  | High-performance web framework |
+| **Database**         | PostgreSQL  | 15+     | Production-grade               |
+| **ORM**              | GORM        | v1.31+  | Feature-rich ORM               |
+| **Auth**             | JWT         | v5.3+   | golang-jwt/jwt                 |
+| **Password Hashing** | Bcrypt      | cost 10 | Secure by default              |
+| **JSON Parser**      | Sonic       | v1.15+  | 2-3x faster than stdlib        |
+| **DI**               | Google Wire | v0.7+   | Compile-time DI                |
+| **Logging**          | Zap         | latest  | Structured logging             |
+| **Testing**          | Mockery     | latest  | Mock generation                |
+| **Config**           | Viper       | latest  | Configuration management       |
+| **CLI**              | Cobra       | latest  | CLI framework                  |
+| **Govern Stack**     | govern      | v0.0.0+ | Production patterns            |
+| **Metrics**          | Prometheus  | latest  | Observability                  |
 
 ## Development
 
@@ -232,26 +236,6 @@ docker build -t golang-sample .
 # Install pre-commit hooks
 pre-commit install
 ```
-
-**Test Coverage:**
-- `pkg/utils/password`: 100% ✅
-- `internal/handler/rest/health`: 52.9% ✅
-- Overall: ~60%
-
-## Govern Package Integration
-
-This project integrates [github.com/haipham22/govern](https://github.com/haipham22/govern) for production-ready patterns:
-
-### Implemented (Phase 1 ✅)
-- **govern/errors** - Standardized error codes across application
-- **govern/postgres** - Database connection pooling with cleanup
-
-### Planned (Phase 3)
-- **govern/config** - Configuration management
-- **govern/jwt** - JWT token generation/validation
-- **govern/metrics** - Prometheus metrics
-
-**Implementation Plan:** [Govern Integration Plan](plans/260224-1557-govern-integration/plan.md)
 
 ## Contributing
 

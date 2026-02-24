@@ -2,6 +2,8 @@ package password
 
 import (
 	"testing"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func TestHashPassword(t *testing.T) {
@@ -137,9 +139,9 @@ func TestCheckPasswordHash(t *testing.T) {
 func TestHashPasswordConsistency(t *testing.T) {
 	password := "ConsistentPassword123!"
 
-	// Hash the same password twice
-	hash1, err1 := HashPassword(password)
-	hash2, err2 := HashPassword(password)
+	// Hash the same password twice using MinCost for faster tests
+	hash1, err1 := HashPasswordWithCost(password, bcrypt.MinCost)
+	hash2, err2 := HashPasswordWithCost(password, bcrypt.MinCost)
 
 	if err1 != nil || err2 != nil {
 		t.Fatalf("failed to generate hashes: err1=%v, err2=%v", err1, err2)
@@ -162,10 +164,10 @@ func TestHashPasswordConsistency(t *testing.T) {
 func TestCheckPasswordHashWithMultipleHashes(t *testing.T) {
 	password := "MultiHashTest123!"
 
-	// Create multiple hashes
+	// Create multiple hashes using MinCost for faster tests
 	hashes := make([]string, 5)
 	for i := 0; i < 5; i++ {
-		hash, err := HashPassword(password)
+		hash, err := HashPasswordWithCost(password, bcrypt.MinCost)
 		if err != nil {
 			t.Fatalf("failed to create hash %d: %v", i, err)
 		}

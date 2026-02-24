@@ -1,142 +1,170 @@
 package rest
 
 import (
-	"context"
+	"errors"
 	"fmt"
-	middlewares2 "golang-sample/internal/handler/rest/middlewares"
+	"golang-sample/pkg/config"
 	"net/http"
 	"time"
 
-	"golang-sample/internal/handler/rest/auth"
-	"golang-sample/internal/handler/rest/health"
-	apiValidator "golang-sample/internal/validator"
-
 	governerrors "github.com/haipham22/govern/errors"
+	governhttp "github.com/haipham22/govern/http"
+	httpEcho "github.com/haipham22/govern/http/echo"
+	"github.com/haipham22/govern/http/middleware"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	echomiddleware "github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
 
-	"golang-sample/pkg/config"
+	authctrl "golang-sample/internal/handler/rest/controllers/auth"
+	healthctrl "golang-sample/internal/handler/rest/controllers/health"
+	"golang-sample/internal/handler/rest/middlewares"
+	apiValidator "golang-sample/internal/validator"
 )
 
-type (
-	Handler struct {
-		log    *zap.SugaredLogger
-		server *echo.Echo
-
-		auth   *auth.Controller
-		health *health.Controller
-	}
-
-	ServerFunc struct {
-		Start    func() error
-		Shutdown func(context.Context) error
-	}
-)
-
-const (
-	readHeaderTimeout = 30 * time.Second
-)
-
-func NewHandler(log *zap.SugaredLogger, e *echo.Echo, auth *auth.Controller, health *health.Controller) *Handler {
+func NewHandler(
+	log *zap.SugaredLogger,
+	e *echo.Echo,
+	authCtrl *authctrl.Controller,
+	healthCtrl *healthctrl.Controller,
+	port int64,
+	debug bool,
+	env string,
+) governhttp.Server {
 
 	e.Validator = apiValidator.NewCustomValidator()
 
-	if config.ENV.App.Debug {
+	if debug {
 		e.Debug = true
 	}
 
 	e.Use(
-		middleware.RemoveTrailingSlashWithConfig(middleware.TrailingSlashConfig{
-			RedirectCode: http.StatusMovedPermanently,
+		echomiddleware.RemoveTrailingSlashWithConfig(echomiddleware.TrailingSlashConfig{
+			RedirectCode: http.StatusPermanentRedirect,
 		}),
-		middleware.Recover(),
-		middleware.RequestID(),
-		//middleware.GzipWithConfig(middleware.GzipConfig{
-		//	Skipper: func(c echo.Context) bool {
-		//		return strings.Contains(c.Request().URL.Path, "document")
-		//	},
-		//}),
-		middlewares2.Logger(zap.L()),
-		middlewares2.MetricsMiddleware(),
+		echomiddleware.Recover(),
+		echomiddleware.RequestID(),
+		middlewares.BodyLimit(),
+		middleware.TrimStrings,
+		middlewares.SecurityHeaders(),
+		middlewares.CORS(),
 	)
 
-	// Set custom HTTP error handler with govern error code support
+	httpEcho.WithEchoSwagger(
+		e,
+		httpEcho.WithSwaggerEnabled(debug && env != config.EnvProduction),
+		httpEcho.WithSwaggerPath("/docs/*"),
+	)
+
 	e.HTTPErrorHandler = customHTTPErrorHandler
 
 	e.IPExtractor = echo.ExtractIPFromRealIPHeader()
 
-	return &Handler{
-		log:    log,
-		server: e,
-		auth:   auth,
-		health: health,
-	}
-}
+	// Create an HTTP server
+	e = initRouter(e, authCtrl, healthCtrl)
 
-func (h *Handler) CreateServer(port int64) (*ServerFunc, error) {
+	server := governhttp.NewServer(
+		fmt.Sprintf(":%d", port),
+		e,
+		governhttp.WithTimeout(30*time.Second, 60*time.Second, 120*time.Second),
+		governhttp.WithLogger(log),
+	)
 
-	if err := h.setRoutes(); err != nil {
-		h.log.Fatalf("Could not set routes: %v", err)
-	}
-
-	sv := http.Server{
-		Addr:              fmt.Sprintf(":%d", port),
-		Handler:           h.server,
-		ReadHeaderTimeout: readHeaderTimeout,
-	}
-
-	return &ServerFunc{
-		Start: sv.ListenAndServe,
-		Shutdown: func(ctx context.Context) error {
-			if err := h.server.Shutdown(ctx); err != nil {
-				h.log.Errorf("Server shutdown error: %v", err)
-				return err
-			}
-			h.log.Info("Server gracefully stopped")
-			return nil
-		},
-	}, nil
+	return server
 }
 
 // customHTTPErrorHandler handles errors with govern error code support
 func customHTTPErrorHandler(err error, c echo.Context) {
 	code := http.StatusInternalServerError
-	message := "Internal Server Error"
+	var responseBody interface{}
 
 	// Check govern error codes first
 	if errCode, ok := governerrors.GetCode(err); ok {
 		switch errCode {
 		case governerrors.CodeInvalid:
 			code = http.StatusBadRequest
-			message = err.Error()
+			// Try to extract validation error details
+			responseBody = buildValidationErrorResponse(err, c.Path())
 		case governerrors.CodeNotFound:
 			code = http.StatusNotFound
-			message = "Resource not found"
+			responseBody = map[string]interface{}{
+				"msg":   "Resource not found",
+				"error": "Resource not found",
+				"path":  c.Path(),
+			}
 		case governerrors.CodeUnauthorized:
 			code = http.StatusUnauthorized
-			message = "Unauthorized"
+			responseBody = map[string]interface{}{
+				"msg":   "Unauthorized",
+				"error": "Unauthorized",
+				"path":  c.Path(),
+			}
 		case governerrors.CodeForbidden:
 			code = http.StatusForbidden
-			message = "Forbidden"
+			responseBody = map[string]interface{}{
+				"msg":   "Forbidden",
+				"error": "Forbidden",
+				"path":  c.Path(),
+			}
 		case governerrors.CodeConflict:
 			code = http.StatusConflict
-			message = err.Error()
+			responseBody = map[string]interface{}{
+				"msg":   "Resource already exists",
+				"error": "conflict occurred",
+				"path":  c.Path(),
+			}
+		case governerrors.CodeInternal:
+			code = http.StatusInternalServerError
+			responseBody = map[string]interface{}{
+				"msg":   "Internal Server Error",
+				"error": "Internal Server Error",
+				"path":  c.Path(),
+			}
 		default:
 			// Log unknown error codes
-			c.Logger().Error("Unknown error code", zap.String("code", string(errCode)), zap.Error(err))
+			zap.L().Error("Unknown error code in error handler",
+				zap.String("code", string(errCode)),
+				zap.String("path", c.Path()),
+				zap.Error(err))
+			code = http.StatusInternalServerError
+			responseBody = map[string]interface{}{
+				"msg":   "Internal Server Error",
+				"error": "Internal Server Error",
+				"path":  c.Path(),
+			}
 		}
 	} else if he, ok := err.(*echo.HTTPError); ok {
 		code = he.Code
-		if he.Message != nil {
-			message = fmt.Sprintf("%v", he.Message)
+
+		// Sanitize 5xx error messages to avoid leaking internal details
+		var clientMsg string
+		if code >= 500 {
+			clientMsg = "Internal Server Error"
+			// Log the actual internal error message
+			zap.L().Error("HTTPError (5xx)",
+				zap.Int("status", code),
+				zap.String("path", c.Path()),
+				zap.String("internal_message", fmt.Sprintf("%v", he.Message)),
+			)
+		} else {
+			clientMsg = fmt.Sprintf("%v", he.Message)
+		}
+
+		responseBody = map[string]interface{}{
+			"msg":   clientMsg,
+			"error": clientMsg,
+			"path":  c.Path(),
 		}
 	} else if err != nil {
-		message = err.Error()
+		code = http.StatusInternalServerError
+		responseBody = map[string]interface{}{
+			"msg":   "Internal Server Error",
+			"error": "Internal Server Error",
+			"path":  c.Path(),
+		}
 	}
 
 	// Log error
-	c.Logger().Error("Request error",
+	zap.L().Error("Request error",
 		zap.String("path", c.Path()),
 		zap.Int("status", code),
 		zap.Error(err),
@@ -144,16 +172,32 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 
 	// Send response
 	if !c.Response().Committed {
-		if code >= 500 {
-			c.JSON(code, map[string]interface{}{
-				"error": "Internal Server Error",
-				"path":  c.Path(),
-			})
-		} else {
-			c.JSON(code, map[string]interface{}{
-				"error": message,
-				"path":  c.Path(),
-			})
+		c.JSON(code, responseBody)
+	}
+}
+
+// buildValidationErrorResponse builds a detailed validation error response
+func buildValidationErrorResponse(err error, path string) map[string]interface{} {
+	// Try to unwrap and find ValidationError
+	var validationErr *apiValidator.ValidationError
+	if errors.As(err, &validationErr) {
+		return map[string]interface{}{
+			"msg":   validationErr.Detail.Msg,
+			"error": validationErr.Detail.Msg,
+			"errors": []map[string]interface{}{
+				{
+					"property": validationErr.Detail.Property,
+					"msg":      validationErr.Detail.Msg,
+				},
+			},
+			"path": path,
 		}
+	}
+
+	// Fallback to generic error message for security
+	return map[string]interface{}{
+		"msg":   "invalid request parameters",
+		"error": "invalid request parameters",
+		"path":  path,
 	}
 }
