@@ -8,9 +8,9 @@ import (
 	"golang-sample/internal/handler/rest/auth"
 	"golang-sample/internal/handler/rest/health"
 	"golang-sample/internal/storage"
+	"golang-sample/pkg/postgres"
 
 	"github.com/google/wire"
-	"github.com/haipham22/govern/database/postgres"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 )
@@ -22,7 +22,7 @@ func New(
 	panic(wire.Build(
 		rest.NewHandler,
 		echo.New,
-		postgres.New,
+		postgres.NewGormDB,
 		wire.NewSet(storage.NewStorage),
 		wire.NewSet(auth.NewAuthController),
 		wire.NewSet(health.NewController),
