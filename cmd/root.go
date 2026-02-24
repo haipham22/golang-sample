@@ -11,7 +11,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "ebookgen",
+	Use:   "golang-sample",
 	Short: "Tool for generate ebooks",
 }
 

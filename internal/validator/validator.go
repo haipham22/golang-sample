@@ -1,14 +1,13 @@
 package middlewares
 
 import (
+	"golang-sample/internal/errors"
+	"golang-sample/internal/schemas"
 	"reflect"
 	"regexp"
 	"strings"
 
 	validatePkg "github.com/go-playground/validator/v10"
-
-	"golang-sample/internal/api/errors"
-	"golang-sample/internal/api/schemas"
 )
 
 type CustomValidator struct {

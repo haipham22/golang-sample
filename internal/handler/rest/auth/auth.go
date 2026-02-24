@@ -1,9 +1,9 @@
 package auth
 
 import (
-	"go.uber.org/zap"
+	"golang-sample/internal/storage"
 
-	"golang-sample/internal/api/storage"
+	"go.uber.org/zap"
 )
 
 type Controller struct {

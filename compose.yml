@@ -3,7 +3,7 @@ volumes:
     driver: local
 
 services:
-  db:
+  postgres:
     image: postgres:latest
     environment:
       POSTGRES_USER: root

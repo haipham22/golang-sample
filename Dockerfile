@@ -1,6 +1,6 @@
 # Build arguments for easier maintenance
-ARG GO_VERSION=1.24
-ARG DEBIAN_VERSION=bullseye
+ARG GO_VERSION=1.25
+ARG DEBIAN_VERSION=bookworm
 ARG APP_NAME=golang-sample
 ARG WORK_DIR=/app
 
@@ -8,6 +8,9 @@ ARG WORK_DIR=/app
 FROM golang:${GO_VERSION}-${DEBIAN_VERSION} AS builder
 ARG WORK_DIR
 WORKDIR ${WORK_DIR}
+
+# Set GOTOOLCHAIN to auto-download the required Go version
+ENV GOTOOLCHAIN=auto
 
 # Install tools first - rarely changes
 #RUN go install github.com/swaggo/swag/cmd/swag@latest
@@ -23,7 +26,7 @@ COPY . .
 
 RUN swag init \
     --output ./internal/api/swagger \
-    --generalInfo ./internal/api/routes.go || exit 0
+    --generalInfo ./internal/routes.go || exit 0
 
 RUN go build -v -o "${APP_NAME}"
 

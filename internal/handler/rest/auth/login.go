@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"golang-sample/internal/errors"
+	schemas2 "golang-sample/internal/schemas"
 	"net/http"
 	"time"
 
@@ -8,8 +10,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/cast"
 
-	"golang-sample/internal/api/errors"
-	"golang-sample/internal/api/schemas"
 	"golang-sample/pkg/config"
 	"golang-sample/pkg/models"
 	"golang-sample/pkg/utils/password"
@@ -28,7 +28,7 @@ import (
 //	@Router		/api/login [post]
 
 func (a *Controller) PostLogin(c echo.Context) (err error) {
-	var req schemas.LoginRequest
+	var req schemas2.LoginRequest
 	if err = c.Bind(&req); err != nil {
 		return errors.NewRequestBindingError(err)
 	}
@@ -46,8 +46,8 @@ func (a *Controller) PostLogin(c echo.Context) (err error) {
 		return echo.ErrUnauthorized
 	}
 
-	// Throws unauthorized error
-	if password.CheckPasswordHash(user.PasswordHash, req.Password) {
+	// Verify password - returns false on mismatch
+	if !password.CheckPasswordHash(user.PasswordHash, req.Password) {
 		return echo.ErrUnauthorized
 	}
 
@@ -57,7 +57,7 @@ func (a *Controller) PostLogin(c echo.Context) (err error) {
 	//}
 
 	// Set custom claims
-	claims := schemas.JwtClaims{
+	claims := schemas2.JwtClaims{
 		ID:       cast.ToString(int(user.ID)),
 		Email:    user.Email,
 		Username: user.Username,
@@ -78,6 +78,6 @@ func (a *Controller) PostLogin(c echo.Context) (err error) {
 
 	return c.JSON(
 		http.StatusOK,
-		schemas.NewResponse(schemas.JwtResponse{Token: t}, http.StatusOK),
+		schemas2.NewResponse(schemas2.JwtResponse{Token: t}, http.StatusOK),
 	)
 }

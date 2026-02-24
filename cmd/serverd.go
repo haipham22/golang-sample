@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"golang-sample/internal"
 	"net/http"
 	"os/signal"
 	"syscall"
@@ -11,13 +12,12 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
-	"golang-sample/internal/api"
 	"golang-sample/pkg/config"
 )
 
 // apiServerCmd represents the binance command
 var apiServerCmd = &cobra.Command{
-	Use:   "api",
+	Use:   "serverd",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -39,7 +39,7 @@ This is sample command.`,
 			log.Fatal("Get port config error")
 		}
 
-		apiHandler, cleanup, err := api.New(config.ENV.Postgres.DSN, log)
+		apiHandler, cleanup, err := internal.New(config.ENV.Postgres.DSN, log)
 		if err != nil {
 			cleanup()
 			log.Fatalf("Could not initialize api handler: %v", err)

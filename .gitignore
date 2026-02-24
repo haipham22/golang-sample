@@ -137,6 +137,14 @@ Temporary Items
 
 # Custom project ignore
 .env
-/internal/api/swagger/*
-!/internal/api/swagger/README.md
-!/internal/api/swagger/empty.go
+/internal/swagger/*
+!/internal/swagger/README.md
+!/internal/swagger/empty.go
+
+# Binaries
+/bin/
+golang-sample
+*.exe
+*.dll
+*.so
+*.dylib

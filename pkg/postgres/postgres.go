@@ -1,36 +1,63 @@
 package postgres
 
 import (
-	"github.com/pkg/errors"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	"time"
 
-	"golang-sample/pkg/config"
+	governpostgres "github.com/haipham22/govern/database/postgres"
+	"gorm.io/gorm"
 )
 
-// NewGormDB creates a new gorm postgresql
+// Config holds database configuration
+type Config struct {
+	DSN          string
+	Debug        bool
+	MaxIdleConns int
+	MaxOpenConns int
+	MaxLifetime  time.Duration
+	MaxIdleTime  time.Duration
+}
+
+// NewGormDB creates a new gorm postgresql with connection pooling
 func NewGormDB(
 	pgDSN string,
 ) (*gorm.DB, func(), error) {
-
-	pgCfg := postgres.Config{
-		DSN:                  pgDSN,
-		PreferSimpleProtocol: true,
-	}
-
-	db, err := gorm.Open(postgres.New(pgCfg), &gorm.Config{
-		SkipDefaultTransaction: true,
+	return New(Config{
+		DSN:          pgDSN,
+		Debug:        true,
+		MaxIdleConns: 10,
+		MaxOpenConns: 100,
+		MaxLifetime:  time.Hour,
+		MaxIdleTime:  10 * time.Minute,
 	})
+}
+
+// New creates a new gorm database with govern/postgres
+func New(cfg Config) (*gorm.DB, func(), error) {
+	// Build govern postgres options
+	options := []governpostgres.Option{
+		governpostgres.WithDebug(cfg.Debug),
+		governpostgres.WithPreferSimpleProtocol(true),
+	}
+
+	// Add connection pooling options
+	if cfg.MaxIdleConns > 0 {
+		options = append(options, governpostgres.WithMaxIdleConns(cfg.MaxIdleConns))
+	}
+	if cfg.MaxOpenConns > 0 {
+		options = append(options, governpostgres.WithMaxOpenConns(cfg.MaxOpenConns))
+	}
+	if cfg.MaxLifetime > 0 {
+		options = append(options, governpostgres.WithConnMaxLifetime(cfg.MaxLifetime))
+	}
+	if cfg.MaxIdleTime > 0 {
+		options = append(options, governpostgres.WithConnMaxIdleTime(cfg.MaxIdleTime))
+	}
+
+	// Use govern postgres with connection pooling
+	db, cleanup, err := governpostgres.New(cfg.DSN, options...)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "gorm.Open")
+		return nil, nil, err
 	}
 
-	if config.ENV.APP.DEBUG {
-		db = db.Debug()
-	}
-
-	return db, func() {
-		s, _ := db.DB()
-		_ = s.Close()
-	}, nil
+	return db, cleanup, nil
 }

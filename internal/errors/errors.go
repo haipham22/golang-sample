@@ -2,14 +2,14 @@ package errors
 
 import (
 	"errors"
+	"golang-sample/internal/schemas"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
 
+	governerrors "github.com/haipham22/govern/errors"
 	"github.com/labstack/echo/v4"
-
-	"golang-sample/internal/api/schemas"
 )
 
 type APIError struct {
@@ -80,11 +80,26 @@ func Wrap(err error, apiErr *APIError, info *schemas.ErrorDetail) error {
 		errDetail.MsgValues = info.MsgValues
 	}
 
-	return &APIError{
+	wrappedErr := &APIError{
 		HTTPCode:    apiErr.HTTPCode,
 		Err:         err,
 		ErrorDetail: errDetail,
 	}
+
+	// Also wrap with govern errors for standardized error codes
+	if apiErr.HTTPCode == http.StatusBadRequest {
+		return governerrors.WrapCode(governerrors.CodeInvalid, wrappedErr)
+	} else if apiErr.HTTPCode == http.StatusNotFound {
+		return governerrors.WrapCode(governerrors.CodeNotFound, wrappedErr)
+	} else if apiErr.HTTPCode == http.StatusUnauthorized {
+		return governerrors.WrapCode(governerrors.CodeUnauthorized, wrappedErr)
+	} else if apiErr.HTTPCode == http.StatusForbidden {
+		return governerrors.WrapCode(governerrors.CodeForbidden, wrappedErr)
+	} else if apiErr.HTTPCode == http.StatusConflict {
+		return governerrors.WrapCode(governerrors.CodeConflict, wrappedErr)
+	}
+
+	return wrappedErr
 }
 
 func (a *APIError) Error() string {

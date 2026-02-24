@@ -4,13 +4,14 @@
 //go:build !wireinject
 // +build !wireinject
 
-package api
+package internal
 
 import (
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
-	"golang-sample/internal/api/routes/auth"
-	"golang-sample/internal/api/storage"
+	"golang-sample/internal/handler/rest/auth"
+	"golang-sample/internal/handler/rest/health"
+	"golang-sample/internal/storage"
 	"golang-sample/pkg/postgres"
 )
 
@@ -23,8 +24,9 @@ func New(dbDSN string, log *zap.SugaredLogger) (*Handler, func(), error) {
 		return nil, nil, err
 	}
 	storageStorage := storage.NewStorage(log, db)
-	controller := auth.NewAuthController(log, storageStorage)
-	handler := NewHandler(log, echoEcho, controller)
+	authController := auth.NewAuthController(log, storageStorage)
+	healthController := health.NewController(db)
+	handler := NewHandler(log, echoEcho, authController, healthController)
 	return handler, func() {
 		cleanup()
 	}, nil
