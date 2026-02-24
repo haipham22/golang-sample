@@ -1,0 +1,9 @@
+# Test configuration file - uses flat notation
+app.debug=true
+app.env=development
+
+postgres.dsn="host=localhost user=postgres password=password dbname=golang_sample_test port=5432 sslmode=disable"
+
+redis.url="redis://localhost:6379/1"
+
+api.secret="test-jwt-secret-key"

@@ -32,8 +32,8 @@ var ENV *EnvConfigMap
 // LoadConfig reads config file (YAML or .env) and loads to global ENV variable
 // Uses govern/config for YAML files or viper for .env files
 func LoadConfig(cfgFile string, logger *zap.Logger) (*EnvConfigMap, error) {
-	// Check if file is .env format
-	if strings.HasSuffix(cfgFile, ".env") {
+	// Check if file is .env format (including .env.*, .test-env, etc.)
+	if strings.Contains(cfgFile, ".env") || strings.Contains(cfgFile, "-env") {
 		return loadFromEnv(cfgFile, logger)
 	}
 

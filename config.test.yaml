@@ -1,0 +1,13 @@
+# Test YAML configuration
+app:
+  debug: true
+  env: development
+
+postgres:
+  dsn: "host=localhost user=postgres password=password dbname=golang_sample_yaml port=5432 sslmode=disable"
+
+redis:
+  url: "redis://localhost:6379/2"
+
+api:
+  secret: "yaml-jwt-secret-key"
