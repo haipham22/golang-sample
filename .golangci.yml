@@ -1,71 +1,92 @@
-# Refer to golangci-lint's example config file for more options and information:
-# https://github.com/golangci/golangci-lint/blob/master/.golangci.reference.yml
-
 run:
   timeout: 5m
-  modules-download-mode: readonly
+  skip-dirs:
+    - vendor
+    - testdata
+    - generated
+  skip-files:
+    - ".*\\.gen\\.go$"
+    - "wire_gen\\.go"
 
 linters:
   disable-all: true
   enable:
-    - errcheck
-    - goimports
-    - gosimple
     - govet
-    - ineffassign
-    - revive
+    - errcheck
     - staticcheck
-    - typecheck
     - unused
+    - gofmt
+    - goimports
+    - gosec
 
 linters-settings:
-  revive:
-    ignore-generated-header: false
-    severity: warning
-    confidence: 0.8
-    errorCode: 0
-    warningCode: 0
-    rules:
-      # default revive recommend rules
-      - name: blank-imports
-      - name: context-as-argument
-      - name: context-keys-type
-      - name: dot-imports
-      - name: error-return
-      - name: error-strings
-      - name: error-naming
-      - name: exported
-      - name: if-return
-      - name: increment-decrement
-      - name: var-naming
-      - name: var-declaration
-      - name: range
-      - name: receiver-naming
-      - name: time-naming
-      - name: unexported-return
-      - name: indent-error-flow
-      - name: errorf
-      - name: empty-block
-      - name: superfluous-else
-      - name: unused-parameter
-      - name: unreachable-code
-      - name: redefines-builtin-id
+  goimports:
+    # Put local imports under third-party imports
+    local-prefixes: golang-sample
+
+  govet:
+    # Enable all analyzers
+    enable-all: true
+    check-shadowing: true
+
+  errcheck:
+    # Report about not checking of errors in type assertions
+    check-type-assertions: true
+    # Report about assignment of errors to blank identifier
+    check-blank: true
+
+  gosec:
+    # Select which checks to run (all security checks)
+    includes:
+      - G101 # Look for hard coded credentials
+      - G102 # Bind to all interfaces
+      - G103 # Audit the use of unsafe block
+      - G104 # Audit errors not checked
+      - G107 # Url provided to HTTP request as taint input
+      - G108 # Profiling endpoint automatically exposed on /debug/pprof
+      - G109 # Convert String to Int with strconv.Atoi
+      - G110 # Potential DoS vulnerability via decompression bomb
+      - G111 # Potential directory traversal
+      - G201 # SQL query construction using format string
+      - G202 # SQL query construction using string concatenation
+      - G203 # Use of unescaped data in HTML templates
+      - G204 # Audit use of command execution
+      - G301 # Poor file permissions used when creating a directory
+      - G302 # Poor file permissions used with chmod
+      - G303 # Creating tempfile using a predictable path
+      - G304 # File path provided as taint input
+      - G306 # Poor file permissions used when writing to a new file
+      - G307 # Deferring a method which returns an error
+      - G401 # Detect the usage of DES, RC4, MD5 or SHA1
+      - G402 # Look for bad TLS connection settings
+      - G403 # Ensure minimum RSA key length of 2048 bits
+      - G404 # Insecure random number source (rand)
+      - G405 # Minimize the use of exec.Command
+      - G501 # Import blocklist: crypto/md5, crypto/sha1
+      - G502 # Import blocklist: crypto/des, crypto/rc4
+      - G503 # Import blocklist: crypto/md5, crypto/sha1
+      - G504 # Import blocklist: net/http/cgi
+      - G601 # Implicit memory aliasing of items from a range statement
 
 issues:
-  exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0
-  exclude-files:
-  - main.go
-  - cmd/root.go
-  - ^wire_gen\.go$
+  # Excluding some issues that are not relevant
   exclude-rules:
+    # Exclude some linters from running on tests files
     - path: _test\.go
       linters:
-        - errcheck
         - gosec
-        - rowserrcheck
-        - makezero
-    - linters:
-        - revive
-      text: "var-naming: don't use an underscore in package name"
+        - errcheck
+
+output:
+  # Format: colored-line-number|json|tab|checkstyle|code-climate
+  format: colored-line-number
+  # Print lines of code with issue
+  print-issued-lines: true
+  # Print linter name in the end of issue text
+  print-linter-name: true
+  # Make issues output unique by line
+  uniq-by-line: true
+  # Sort results by: filepath, line and column
+  sort-results: true

@@ -28,6 +28,19 @@ repos:
             vendor/.*
           )$
 
+  - repo: local
+    hooks:
+      - id: go-imports-local
+        name: go imports with local sort
+        entry: goimports -local golang-sample
+        language: system
+        types: [ go ]
+        exclude: |
+          (?x)^(
+            wire_gen\.go|
+            vendor/.*
+          )$
+
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v9.24.0
     hooks:
