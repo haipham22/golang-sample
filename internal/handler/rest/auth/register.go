@@ -2,13 +2,14 @@ package auth
 
 import (
 	"golang-sample/internal/errors"
+	"golang-sample/internal/models"
 	schemas2 "golang-sample/internal/schemas"
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo/v4"
-	"golang-sample/pkg/models"
 	"golang-sample/pkg/utils/password"
+
+	"github.com/labstack/echo/v4"
 )
 
 // PostRegister godoc

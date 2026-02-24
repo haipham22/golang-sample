@@ -2,6 +2,7 @@ package auth
 
 import (
 	"golang-sample/internal/errors"
+	"golang-sample/internal/models"
 	schemas2 "golang-sample/internal/schemas"
 	"net/http"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"github.com/spf13/cast"
 
 	"golang-sample/pkg/config"
-	"golang-sample/pkg/models"
 	"golang-sample/pkg/utils/password"
 )
 

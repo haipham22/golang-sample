@@ -7,26 +7,28 @@
 package internal
 
 import (
-	"github.com/labstack/echo/v4"
-	"go.uber.org/zap"
+	"golang-sample/internal/handler/rest"
 	"golang-sample/internal/handler/rest/auth"
 	"golang-sample/internal/handler/rest/health"
 	"golang-sample/internal/storage"
 	"golang-sample/pkg/postgres"
+
+	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
 )
 
 // Injectors from wire.go:
 
-func New(dbDSN string, log *zap.SugaredLogger) (*Handler, func(), error) {
+func New(dbDSN string, log *zap.SugaredLogger) (*rest.Handler, func(), error) {
 	echoEcho := echo.New()
 	db, cleanup, err := postgres.NewGormDB(dbDSN)
 	if err != nil {
 		return nil, nil, err
 	}
 	storageStorage := storage.NewStorage(log, db)
-	authController := auth.NewAuthController(log, storageStorage)
+	controller := auth.NewAuthController(log, storageStorage)
 	healthController := health.NewController(db)
-	handler := NewHandler(log, echoEcho, authController, healthController)
+	handler := rest.NewHandler(log, echoEcho, controller, healthController)
 	return handler, func() {
 		cleanup()
 	}, nil

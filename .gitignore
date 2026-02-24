@@ -148,3 +148,6 @@ golang-sample
 *.dll
 *.so
 *.dylib
+# Go mocks
+mock/
+*.mock.go

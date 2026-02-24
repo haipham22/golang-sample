@@ -48,3 +48,13 @@ repos:
         stages: [commit-msg]
         additional_dependencies: ['@commitlint/config-conventional']
         args: ['--edit']
+
+# gomock hooks
+  - repo: local
+    hooks:
+      - id: gomock
+        name: generate gomock mocks
+        entry: go generate ./...
+        language: system
+        pass_filenames: true
+        files: go\.mod

@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"golang-sample/internal/models"
 	"testing"
 	"time"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	"golang-sample/pkg/models"
 	"golang-sample/pkg/utils/password"
 )
 

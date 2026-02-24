@@ -1,4 +1,4 @@
-package internal
+package rest
 
 import (
 	"github.com/labstack/echo/v4"

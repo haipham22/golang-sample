@@ -1,14 +1,15 @@
-package internal
+package rest
 
 import (
 	"context"
 	"fmt"
-	"golang-sample/internal/handler/rest/auth"
-	"golang-sample/internal/handler/rest/health"
-	"golang-sample/internal/middlewares"
-	apiValidator "golang-sample/internal/validator"
+	middlewares2 "golang-sample/internal/handler/rest/middlewares"
 	"net/http"
 	"time"
+
+	"golang-sample/internal/handler/rest/auth"
+	"golang-sample/internal/handler/rest/health"
+	apiValidator "golang-sample/internal/validator"
 
 	governerrors "github.com/haipham22/govern/errors"
 	"github.com/labstack/echo/v4"
@@ -56,8 +57,8 @@ func NewHandler(log *zap.SugaredLogger, e *echo.Echo, auth *auth.Controller, hea
 		//		return strings.Contains(c.Request().URL.Path, "document")
 		//	},
 		//}),
-		middlewares.Logger(zap.L()),
-		middlewares.MetricsMiddleware(),
+		middlewares2.Logger(zap.L()),
+		middlewares2.MetricsMiddleware(),
 	)
 
 	// Set custom HTTP error handler with govern error code support

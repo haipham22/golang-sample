@@ -3,12 +3,11 @@ package storage
 import (
 	"context"
 	"fmt"
+	"golang-sample/internal/models"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-
-	"golang-sample/pkg/models"
 )
 
 func (s *storageHandler) IsExistBy(field string, condition string) (bool, error) {

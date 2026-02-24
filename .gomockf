@@ -1,0 +1,48 @@
+package mock
+
+import (
+	"testing"
+
+	"github.com/golang-sample/internal/storage"
+	"github.com/golang-sample/pkg/models"
+)
+
+// MockStorage is a mock implementation of storage.Interface
+type MockStorage struct {
+	MockCreateUser        func(ctx context.Context, user *models.User) (*models.User, error)
+	MockFindUserByUsername  func(ctx context.Context, username string) (*models.User, error)
+	MockIsExistBy          func(field, value string) (bool, error)
+	MockUpdateLastLogin    func(ctx context.Context, user *models.User, lastLogin time.Time) error
+}
+
+// CreateUser mocks
+func (m *MockStorage) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
+	if m.MockCreateUser == nil {
+		panic("MockStorage.MockCreateUser: called but not defined")
+	}
+	return m.MockCreateUser(ctx, user)
+}
+
+// FindUserByUsername mocks
+func (m *MockStorage) FindUserByUsername(ctx context.Context, username string) (*models.User, error) {
+	if m.MockFindUserByUsername == nil {
+		panic("MockStorage.MockFindUserByUsername: called but not defined")
+	}
+	return m.MockFindUserByUsername(ctx, username)
+}
+
+// IsExistBy mocks
+func (m *MockStorage) IsExistBy(field, value string) (bool, error) {
+	if m.MockIsExistBy == nil {
+		panic("MockStorage.MockIsExistBy: called but not defined")
+	}
+	return m.MockIsExistBy(field, value)
+}
+
+// UpdateLastLogin mocks
+func (m *MockStorage) UpdateLastLogin(ctx context.Context, user *models.User, lastLogin time.Time) error {
+	if m.MockUpdateLastLogin == nil {
+		panic("MockStorage.UpdateLastLogin: called but not defined")
+	}
+	return m.MockUpdateLastLogin(ctx, user, lastLogin)
+}
