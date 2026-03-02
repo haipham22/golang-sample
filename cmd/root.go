@@ -12,7 +12,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "golang-sample",
-	Short: "Tool for generate ebooks",
+	Short: "Sample Golang application with best practices",
 }
 
 var (
@@ -41,7 +41,8 @@ func initDependency() {
 func initConfig() {
 	logger := zap.L()
 	if _, err := config.LoadConfig(cfgFile, logger); err != nil {
-		panic("Can't load config from environment")
+		logger.Error("Failed to load config", zap.String("file", cfgFile), zap.Error(err))
+		panic(fmt.Sprintf("can't load config from %s: %v", cfgFile, err))
 	}
 }
 

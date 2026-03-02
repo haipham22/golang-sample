@@ -13,3 +13,11 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+  app:
+    build: .
+    container_name: golang-sample-app
+    image: haipham22/golang-sample
+    ports:
+      - "8080:8080"
+#    env_file:
+#      - .env

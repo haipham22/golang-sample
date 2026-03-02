@@ -1,14 +1,18 @@
-package middlewares
+package validator
 
 import (
-	"golang-sample/internal/errors"
-	"golang-sample/internal/schemas"
 	"reflect"
 	"regexp"
 	"strings"
 
 	validatePkg "github.com/go-playground/validator/v10"
+	governerrors "github.com/haipham22/govern/errors"
+
+	"golang-sample/internal/schemas"
 )
+
+// Precompiled regex for array index notation
+var arrayIndexRe = regexp.MustCompile(`\[\d+]`)
 
 type CustomValidator struct {
 	validator *validatePkg.Validate
@@ -17,9 +21,15 @@ type CustomValidator struct {
 func (cv *CustomValidator) Validate(i interface{}) error {
 	if err := cv.validator.Struct(i); err != nil {
 		for _, fieldErr := range err.(validatePkg.ValidationErrors) {
-			return errors.Wrap(errors.ErrValidationError, errors.ErrValidationError, &schemas.ErrorDetail{
-				Property: FormatStructField(fieldErr),
-			})
+			// Create detailed validation error with property information
+			property := FormatStructField(fieldErr)
+			detail := schemas.ErrorDetail{
+				Property: property,
+				Msg:      "Validation failed for field: " + property,
+			}
+			// Wrap the validation error with govern code and include detail in message
+			return governerrors.WrapCode(governerrors.CodeInvalid,
+				&ValidationError{Detail: detail})
 		}
 	}
 	return nil
@@ -43,9 +53,21 @@ func NewCustomValidator() *CustomValidator {
 
 func FormatStructField(fieldError validatePkg.FieldError) string {
 	field := fieldError.Field()
-	re := regexp.MustCompile(`\[\d+]`)
 
 	// Replace array index notation with an empty string
-	propertyWithoutIndex := re.ReplaceAllString(field, "")
-	return propertyWithoutIndex
+	return arrayIndexRe.ReplaceAllString(field, "")
+}
+
+// ValidationError represents a validation error with detailed information
+type ValidationError struct {
+	Detail schemas.ErrorDetail
+}
+
+func (e *ValidationError) Error() string {
+	return e.Detail.Msg
+}
+
+// GetProperty returns the property that failed validation
+func (e *ValidationError) GetProperty() string {
+	return e.Detail.Property
 }

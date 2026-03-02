@@ -1,0 +1,35 @@
+# Mockery v3 configuration - consolidated mocks structure
+# This config automatically applies to ALL interfaces in configured packages
+# Just add new packages following the pattern below
+
+all: true
+dir: "internal/mocks"
+filename: "mock_{{.InterfaceName}}.go"
+force-file-write: true
+formatter: goimports
+log-level: info
+# Use package name based on source package to avoid import cycles
+pkgname: "mocks"
+structname: "Mock{{.InterfaceName}}"
+
+# IMPORTANT: Add new packages here following the layer-based pattern
+# Do NOT specify interfaces - it will mock ALL interfaces in the package
+packages:
+  # Storage layer - all storage interfaces
+  golang-sample/internal/storage/user:
+    config:
+      dir: "internal/mocks/storage"
+
+  # Service layer - all service interfaces
+  golang-sample/internal/service/auth:
+    config:
+      dir: "internal/mocks/service"
+
+  # Add more packages as needed:
+  # golang-sample/internal/service/email:
+  #   config:
+  #     dir: "internal/mocks/service"
+  #
+  # golang-sample/internal/handler/rest/controllers/user:
+  #   config:
+  #     dir: "internal/mocks/handler"

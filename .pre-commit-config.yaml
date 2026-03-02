@@ -49,12 +49,12 @@ repos:
         additional_dependencies: ['@commitlint/config-conventional']
         args: ['--edit']
 
-# gomock hooks
+# mockery hooks
   - repo: local
     hooks:
-      - id: gomock
-        name: generate gomock mocks
-        entry: go generate ./...
+      - id: mockery
+        name: regenerate mockery mocks
+        entry: mockery
         language: system
-        pass_filenames: true
-        files: go\.mod
+        pass_filenames: false
+        files: ^(|.*/|.*_)interface\.go$

@@ -6,4 +6,10 @@ then
     go install github.com/swaggo/swag/cmd/swag@latest
 fi
 
-swag init --output ./internal/api/swagger --generalInfo ./internal/api/routes.go
+swag init \
+    --output ./internal/handler/rest/swagger \
+    --generalInfo ./internal/handler/rest/routes.go \
+    -td "[[,]]"
+
+#    --parseDependency \
+#    --parseInternal \

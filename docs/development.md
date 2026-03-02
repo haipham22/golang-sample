@@ -24,8 +24,8 @@ go install github.com/google/wire/cmd/wire@latest
 # Install Swag (Swagger documentation)
 go install github.com/swaggo/swag/cmd/swag@latest
 
-# Install gomock (mocking framework)
-go install github.com/golang/mock/mockgen@latest
+# Install Mockery (mock generation)
+go install github.com/vektra/mockery/v2@latest
 
 # Install pre-commit hooks
 pip install pre-commit
@@ -73,9 +73,10 @@ go tool cover -html=coverage.out -o coverage.html
 
 Current coverage:
 - `pkg/utils/password`: **100%** ✅
-- `internal/handler/rest/health`: **52.9%** ✅
-- `internal/handler/rest/auth`: Mock tests
-- Overall: **~60%**
+- `internal/service/auth`: **83.3%** ✅
+- `internal/handler/rest/controllers/auth`: **80.0%** ✅
+- `internal/handler/rest/controllers/health`: **52.9%** ✅
+- Overall: **~65%**
 
 ### Run Benchmarks
 
@@ -102,43 +103,50 @@ func TestHashPassword(t *testing.T) {
 
 ## Mock Generation
 
-### Using Gomock
+### Using Mockery
 
 ```bash
 # Generate mocks for all interfaces
-go generate ./...
+mockery --all
 
 # Generate mocks for specific package
-go generate ./internal/storage
+mockery --dir=./internal/service/auth --all
 
-# Regenerate wire dependencies
-go generate ./internal
+# Generate mock for specific interface
+mockery --name=Storage --dir=./internal/storage/user
+
+# Regenerate mocks after interface changes
+make mocks
 ```
 
-### Mock Interface Example
+### Mockery Configuration
 
-```go
-//go:generate mockgen -source=storage.go -destination=mock/mock_storage.go -package=mock
+Create `.mockery.yaml` for consistent mock generation:
 
-type Storage interface {
-    CreateUser(ctx context.Context, user *models.User) (*models.User, error)
-    FindUserByUsername(ctx context.Context, username string) (*models.User, error)
-}
+```yaml
+version: 2
+mocking:
+  - dir: internal/service/auth
+    interface: Service
+    output: internal/service/auth/mocks
+  - dir: internal/storage/user
+    interface: Storage
+    output: internal/storage/user/mocks
+  - dir: internal/handler/rest/controllers/auth
+    interface: AuthService
+    output: internal/handler/rest/controllers/auth/mocks
 ```
 
 ### Using Mocks in Tests
 
 ```go
-func TestAuthController_Login(t *testing.T) {
-    ctrl := gomock.NewController(t)
-    defer ctrl.Finish()
-
-    mockStorage := mock.NewMockStorage(ctrl)
+func TestAuthService_Login(t *testing.T) {
+    mockStorage := mocks.NewMockStorage(t)
     mockStorage.EXPECT().
-        FindUserByUsername(gomock.Any(), "testuser").
+        FindUserByUsername(mock.AnythingOfType("context.Context"), "testuser").
         Return(expectedUser, nil)
 
-    controller := auth.NewAuthController(mockStorage)
+    service := NewAuthService(log, mockStorage, "secret", 72*time.Hour)
     // Test login...
 }
 ```
@@ -152,7 +160,7 @@ func TestAuthController_Login(t *testing.T) {
 | `go-fmt` | Format Go code |
 | `goimports-repo` | Sort imports (repository order) |
 | `go-imports-local` | Sort imports (local packages grouped) |
-| `gomock` | Generate mocks when go.mod changes |
+| `mockery` | Generate mocks when interfaces change |
 | `trailing-whitespace` | Remove trailing whitespace |
 | `end-of-file-fixer` | Ensure files end with newline |
 | `check-yaml` | Validate YAML syntax |
@@ -442,6 +450,7 @@ git commit -m "refactor: extract validation to separate package"
 - [ ] Documentation updated
 - [ ] Swagger docs regenerated (if API changed)
 - [ ] Wire dependencies regenerated (if DI changed)
+- [ ] Mocks regenerated (if interfaces changed)
 
 ### Troubleshooting
 
