@@ -24,7 +24,6 @@ func initRouter(
 
 	// Apply rate limiting to auth endpoints (10 requests per minute per IP)
 	// Using context.Background() as the rate limiter runs for the application lifetime
-	public := e.Group("/api")
 	authRateLimiter := middlewares.RateLimit(context.Background())
 	public.POST("/login", authCtrl.PostLogin, authRateLimiter)
 	public.POST("/register", authCtrl.PostRegister, authRateLimiter)
