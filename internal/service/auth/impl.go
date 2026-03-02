@@ -2,11 +2,13 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	governerrors "github.com/haipham22/govern/errors"
+	"gorm.io/gorm"
 	"go.uber.org/zap"
 
 	"golang-sample/internal/model"
@@ -66,6 +68,13 @@ func (s *impl) Register(ctx context.Context, req RegisterRequest) (*model.User, 
 
 	createdUser, err := s.storage.CreateUserWithPassword(ctx, m, hashedPassword)
 	if err != nil {
+		// Handle race condition: if user was created between uniqueness check and now
+		// PostgreSQL duplicate key error code is 23505
+		if err != nil && (err.Error() == "ERROR: duplicate key value violates unique constraint" ||
+			errors.Is(err, gorm.ErrDuplicatedKey)) {
+			s.log.Warnf("User creation failed due to duplicate (race condition)")
+			return nil, governerrors.NewCode(governerrors.CodeConflict, "username or email already exists")
+		}
 		s.log.Errorf("Failed to create user: %v", err)
 		return nil, governerrors.WrapCode(governerrors.CodeInternal, err)
 	}

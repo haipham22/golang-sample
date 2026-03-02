@@ -73,6 +73,9 @@ func provideDB(appConfig *config.EnvConfigMap) (*gorm.DB, func(), error) {
 
 // provideAuthConfig extracts JWT config from main config
 func provideAuthConfig(appConfig *config.EnvConfigMap) authConfig {
+	if appConfig.API.Secret == "" {
+		panic("JWT secret is required but not configured. Please set api.secret in your config file.")
+	}
 	return authConfig{
 		jwtSecret: appConfig.API.Secret,
 	}

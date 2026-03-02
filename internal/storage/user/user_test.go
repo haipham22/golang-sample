@@ -730,7 +730,8 @@ func TestRepo_IsExistBy_Integration(t *testing.T) {
 		Username: "testuser",
 		Email:    "test@example.com",
 	}
-	db.Create(&orm.User{ID: user.ID, Username: user.Username, Email: user.Email, PasswordHash: "testhash"})
+	result := db.Create(&orm.User{ID: user.ID, Username: user.Username, Email: user.Email, PasswordHash: "testhash"})
+	require.NoError(t, result.Error)
 
 	// Test existing user by username
 	exists, err = storage.IsExistBy(ctx, "username", "testuser")
@@ -819,7 +820,8 @@ func TestRepo_FindUserByUsername_Integration(t *testing.T) {
 		Username: "testuser",
 		Email:    "test@example.com",
 	}
-	db.Create(&orm.User{ID: user.ID, Username: user.Username, Email: user.Email, PasswordHash: "testhash"})
+	result := db.Create(&orm.User{ID: user.ID, Username: user.Username, Email: user.Email, PasswordHash: "testhash"})
+	require.NoError(t, result.Error)
 
 	// Test finding existing user
 	found, err := storage.FindUserByUsername(ctx, "testuser")
