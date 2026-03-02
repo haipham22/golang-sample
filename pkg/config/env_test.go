@@ -53,7 +53,7 @@ func TestLoadConfigFromEnvFile(t *testing.T) {
 	assert.Equal(t, "redis://localhost:6379/1", cfg.Redis.URL, "Redis URL should match")
 
 	// Verify API config
-	assert.Equal(t, "test-jwt-secret-key", cfg.API.Secret, "API secret should match")
+	assert.Equal(t, "test-jwt-secret-key-for-testing-purposes-only", cfg.API.Secret, "API secret should match")
 
 	// Verify global ENV is set
 	assert.Equal(t, cfg, ENV, "Global ENV should be set")
