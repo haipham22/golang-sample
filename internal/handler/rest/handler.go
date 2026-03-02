@@ -140,7 +140,7 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 		if code >= 500 {
 			clientMsg = "Internal Server Error"
 			// Log the actual internal error message (safe to log internally)
-			c.Logger().Error("HTTPError (5xx)",
+			zap.L().Error("HTTPError (5xx)",
 				zap.Int("status", code),
 				zap.String("path", c.Path()),
 				zap.String("internal_message", fmt.Sprintf("%v", he.Message)),
@@ -165,12 +165,12 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 
 	// Log error (avoid raw conflict errors which may leak info)
 	if errCode, ok := governerrors.GetCode(err); ok && errCode == governerrors.CodeConflict {
-		c.Logger().Warn("Request error: conflict",
+		zap.L().Warn("Request error: conflict",
 			zap.String("path", c.Path()),
 			zap.Int("status", code),
 		)
 	} else {
-		c.Logger().Error("Request error",
+		zap.L().Error("Request error",
 			zap.String("path", c.Path()),
 			zap.Int("status", code),
 			zap.Error(err),

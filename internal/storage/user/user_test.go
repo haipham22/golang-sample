@@ -542,11 +542,12 @@ func TestStorage_ConcurrentOperations_WithMock(t *testing.T) {
 
 	// Concurrent creates
 	for i := 0; i < 5; i++ {
+		idx := i
 		go func() {
 			defer func() { done <- true }()
 			mockStorage.CreateUserWithPassword(ctx, &model.User{
-				Username: fmt.Sprintf("user%d", i),
-				Email:    fmt.Sprintf("user%d@example.com", i),
+				Username: fmt.Sprintf("user%d", idx),
+				Email:    fmt.Sprintf("user%d@example.com", idx),
 			}, "hash")
 		}()
 	}
