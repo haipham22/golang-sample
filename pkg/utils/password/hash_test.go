@@ -1,6 +1,7 @@
 package password
 
 import (
+	"strings"
 	"testing"
 
 	"golang.org/x/crypto/bcrypt"
@@ -39,8 +40,8 @@ func TestHashPassword(t *testing.T) {
 		},
 		{
 			name:        "password exceeding 72 bytes (bcrypt limit)",
-			password:    string(make([]byte, 100)), // 100 bytes, exceeds bcrypt limit
-			expectError: true,
+			password:    strings.Repeat("a", 100), // 100 bytes, exceeds bcrypt limit
+			expectError: true, // modern bcrypt returns error for >72 bytes
 		},
 	}
 

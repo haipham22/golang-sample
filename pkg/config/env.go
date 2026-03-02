@@ -47,6 +47,11 @@ func LoadConfig(cfgFile string, logger *zap.Logger) (*EnvConfigMap, error) {
 		return nil, err
 	}
 
+	// Validate config before using
+	if err := cfg.Validate(); err != nil {
+		return nil, err
+	}
+
 	ENV = cfg
 	return cfg, nil
 }
@@ -58,6 +63,11 @@ func loadFromEnv(cfgFile string, logger *zap.Logger) (*EnvConfigMap, error) {
 		config.WithLogger(logger),
 	)
 	if err != nil {
+		return nil, err
+	}
+
+	// Validate config before using
+	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
 
