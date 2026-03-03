@@ -44,17 +44,12 @@ A production-ready Go API demonstrating clean architecture principles with Go 1.
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [Quick Start Guide](docs/quickstart.md) | Get up and running in 5 minutes |
-| [Development Guide](docs/development.md) | Testing, building, and development workflow |
-| [Project Overview & PDR](docs/project-overview-pdr.md) | Product requirements, roadmap, and current status |
-| [Codebase Summary](docs/codebase-summary.md) | Complete directory structure, API endpoints, and dependencies |
-| [Code Standards](docs/code-standards.md) | Naming conventions, style guidelines, and best practices |
-| [System Architecture](docs/system-architecture.md) | Clean architecture layers, design patterns, and data flow |
-| [Govern Runner Migration](docs/govern-runner-migration.md) | Migration to graceful.Run() helper |
-| [TrimStrings Middleware](docs/trim-strings-middleware.md) | Automatic string trimming middleware |
-| [Code Review Fixes](docs/code-review-fixes.md) | Recent fixes from code review |
+| Document                                                  | Description                                                   |
+|-----------------------------------------------------------|---------------------------------------------------------------|
+| [Quick Start Guide](docs/quickstart.md)                   | Get up and running in 5 minutes                               |
+| [Development Guide](docs/development.md)                  | Testing, building, and development workflow                   |
+| [Code Standards](docs/code-standards.md)                  | Naming conventions, style guidelines, and best practices      |
+| [System Architecture](docs/system-architecture.md)        | Clean architecture layers, design patterns, and data flow     |
 
 ## Quick Start
 
