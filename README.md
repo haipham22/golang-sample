@@ -1,3 +1,24 @@
+# 🚧 Migration in Progress
+
+This repository is being restructured into the govern monorepo.
+
+**Current Branch**: feat/monorepo-migration
+**Target**: Single repository containing govern library + sample app + generator
+
+**Migration Status**: Phase 01 - Repository Preparation
+
+**What's Happening**:
+- Repository will be renamed from golang-sample to govern
+- Govern packages will be merged from ../govern/ repository
+- Sample app will move to examples/golang-sample/
+- Interactive project generator will be added
+
+**No Breaking Changes**: Current imports already use github.com/haipham22/govern
+
+**Migration Plan**: See plans/260627-2307-govern-monorepo-and-wire-removal/plan.md
+
+---
+
 # Golang Sample API
 
 [![Build docker image](https://github.com/haipham22/golang-sample/actions/workflows/push.yml/badge.svg)](https://github.com/haipham22/golang-sample/actions/workflows/push.yml)
