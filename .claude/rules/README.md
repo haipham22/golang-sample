@@ -31,6 +31,7 @@ This directory contains focused, single-responsibility rule files for Go develop
 | **Web Framework** | [web-framework-rules.md](web-framework-rules.md) | Echo handlers, middleware, validation | ~200 |
 | **Database Rules** | [database-rules.md](database-rules.md) | GORM patterns, error envelope, PostgreSQL | ~200 |
 | **Infrastructure** | [infrastructure-rules.md](infrastructure-rules.md) | Zap logging, environment config | ~200 |
+| **Docker** | [docker.md](docker.md) | Docker Compose, multi-stage builds, containers | ~200 |
 
 ---
 
@@ -47,6 +48,7 @@ This directory contains focused, single-responsibility rule files for Go develop
 - **Validation:** [golang-validator.md](golang-validator.md)
 - **Testing:** [golang-testing.md](golang-testing.md)
 - **API docs:** [golang-swagger.md](golang-swagger.md)
+- **Docker containers:** [docker.md](docker.md)
 
 ---
 
@@ -67,7 +69,7 @@ Concurrency       → golang-context-concurrency.md
 Data Validation   → golang-validator.md
 Error Handling    → golang-error-handling.md, infrastructure-rules.md
 Testing           → golang-testing.md
-Tooling           → mise.md, golang-swagger.md
+Tooling           → mise.md, golang-swagger.md, docker.md
 ```
 
 ---
