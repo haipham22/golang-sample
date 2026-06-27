@@ -164,3 +164,16 @@ scripts/generate-project/tmp/
 
 # Generated projects
 generated-*/
+
+# Govern packages build artifacts
+config/bin/
+cron/bin/
+database/bin/
+errors/bin/
+graceful/bin/
+healthcheck/bin/
+http/bin/
+log/bin/
+metrics/bin/
+mq/bin/
+retry/bin/
