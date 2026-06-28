@@ -11,7 +11,7 @@ import (
 
 	govern "github.com/haipham22/govern/graceful"
 
-	restHandler "github.com/haipham22/golang-sample/internal/handler/rest"
+	"github.com/haipham22/golang-sample/internal/bootstrap"
 	"github.com/haipham22/golang-sample/pkg/config"
 )
 
@@ -51,7 +51,7 @@ Example:
 		// Load config at composition root
 		cfg := config.ENV
 
-		handler, cleanup, err := restHandler.New(log, port, cfg)
+		app, cleanup, err := bootstrap.New(bootstrap.Config{Port: port, AppConfig: cfg})
 		if err != nil {
 			return err
 		}
@@ -66,7 +66,7 @@ Example:
 			ctx,
 			log,
 			time.Duration(shutdownTime)*time.Second,
-			handler,
+			app.HTTPServer,
 		)
 
 		return err
