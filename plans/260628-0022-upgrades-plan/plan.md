@@ -1,7 +1,7 @@
 ---
 title: "Golang Sample Upgrades: Go 1.26, Echo v5, Database Layer"
 description: "Comprehensive upgrade plan for Go 1.26, Echo v4→v5 migration, and database layer evaluation"
-status: in-progress
+status: completed
 priority: P2
 effort: 16h
 branch: main
@@ -12,10 +12,10 @@ created: 2026-06-28
 # Golang Sample Upgrades Plan
 
 **Project:** golang-sample  
-**Current State:** Go 1.25.8, Echo v4.15.1, GORM v1.31.1 (Phase 02 — Wire removal — **DONE**)  
-**Target State:** Go 1.26, Echo v5 (deferred), Optimized GORM  
+**Current State:** Go 1.26.4, Echo v5.2.1, GORM v1.31.1, manual DI, dev-gated DB migration  
+**Target State:** Achieved 2026-06-28  
 
-**Executive Summary:** This plan addresses four upgrade tracks with phased implementation. **Go 1.26 upgrade** is low-risk high-value (4h effort). **Wire removal** is low-risk medium-value (4h effort) - simplifies build process. **Database layer** analysis complete - **RECOMMEND STAY WITH GORM** with optimizations (6h effort). **Echo v5 migration** is medium-risk medium-value (6h effort) - **RECOMMENDED TO DEFER** until govern package supports v5.
+**Executive Summary:** Completed all upgrade tracks. Go 1.26.4 landed across monorepo, Wire was removed from sample app, database plan was narrowed to 3 real fixes and completed, and Echo v5 unblocked early after govern migrated first.
 
 ---
 
@@ -30,10 +30,9 @@ created: 2026-06-28
 > | 03 DB optimization | pending | ✅ **DONE** | dev-gated AutoMigrate (User+Product); GORM debug→`cfg.App.Debug`; user repo→`apperrors` (pkg/errors removed); full `go test -race` green |
 > | 04 Echo v5 | DEFERRED | ✅ **DONE** | both modules migrated to `echo/v5 v5.2.1` (govern first, then sample); full `go test -race` green |
 >
-> **Doc discrepancies found (not yet fixed):**
-> - Phase 02 implemented DI in `internal/handler/rest/di.go`, **not** `new.go`/`bootstrap/handler.go` as the phase doc describes.
+> **Remaining doc drift (accepted):**
+> - Historical implementation snippets in phase files still show original paths (`new.go`, `bootstrap/handler.go`, Echo v4 examples). Status headers now carry actual completion state.
 > - Phase-file numbering diverges from this `plan.md`: two `phase-02-*` files exist (`database-optimization` + `remove-wire`); Echo v5 is `phase-03` in files vs `phase-04` here.
-> - **Bonus / stale dep:** govern root `go.mod` still requires `google/wire v0.7.0` but no source references it → `go mod tidy` on the govern module will remove it.
 
 ---
 
@@ -50,7 +49,7 @@ created: 2026-06-28
 
 ## Phase 01: Go 1.26 Upgrade (4 hours)
 
-**Status:** `pending`  
+**Status:** `completed` ✅ — Go 1.26.4 across monorepo; tests/build/race clean.  
 **Priority:** **P1** (Do First)  
 **Risk Level:** Very Low  
 **Dependencies:** None  
@@ -203,7 +202,7 @@ After Wire removal complete → Proceed to Phase 03 (Database Optimization)
 
 ## Phase 03: Database Layer Optimization (6 hours)
 
-**Status:** `pending`  
+**Status:** `completed` ✅ — revised audit scope done: dev AutoMigrate, debug-driven GORM logging, user repo `apperrors`.  
 **Priority:** **P1** (Do After Wire Removal)  
 **Risk Level:** Low  
 **Dependencies:** Phase 02 (Wire Removal)
@@ -339,8 +338,8 @@ After database optimization complete → Proceed to Phase 04 (Echo v5 - DEFERRED
 
 ## Phase 04: Echo v4 → v5 Migration (6 hours)
 
-**Status:** `pending`  
-**Priority:** **P3** (DEFER - Q3-Q4 2026)  
+**Status:** `completed` ✅ — govern and sample migrated to Echo v5.2.1; full validation green.  
+**Priority:** **P3** (Originally deferred; unblocked early)  
 **Risk Level:** Medium-High  
 **Dependencies:** Govern Echo v5 support  
 
@@ -446,17 +445,17 @@ mise exec -- go test ./...
 - [x] Phase 03: Database optimization — **DONE** (revised 3-task scope, 2026-06-28)
 
 ### Short-Term (Q2 2026)
-- [ ] Complete Go 1.26 upgrade
-- [ ] Complete Wire removal
-- [ ] Complete database optimization
-- [ ] Validate all improvements
+- [x] Complete Go 1.26 upgrade
+- [x] Complete Wire removal
+- [x] Complete database optimization
+- [x] Validate all improvements
 
 ### Medium-Term (Q3-Q4 2026)
 - [ ] Monitor manual DI stability
 - [ ] Measure build time improvement (Wire removal)
-- [ ] Re-evaluate Echo v5 migration timing
-- [ ] Check govern package Echo v5 support
-- [ ] Plan Echo v5 migration if ready
+- [x] Re-evaluate Echo v5 migration timing
+- [x] Check govern package Echo v5 support
+- [x] Plan and complete Echo v5 migration
 
 ### Long-Term (2027+)
 - [ ] Plan Go 1.27 upgrade (deprecated GODEBUG settings)
@@ -500,28 +499,24 @@ go mod tidy
 
 ## Unresolved Questions
 
-1. **Go 1.26 GC Impact:** What are the specific performance characteristics of this application's heap allocation patterns? (Requires benchmarking)
+1. **Go 1.26 GC Impact:** Need production-like benchmark before claiming app-specific GC gains.
 
-2. **Wire Removal Impact:** Will manual DI introduce any runtime overhead or maintenance burden?
+2. **Database Performance:** Need explicit latency targets before considering pgx/sqlc or more query work.
 
-3. **Govern Echo v5 Support:** When will `github.com/haipham22/govern/http/echo` officially support Echo v5?
-
-4. **Database Performance:** What are actual latency targets and are current measurements acceptable?
-
-5. **Team Capacity:** Who available for Echo v5 migration when ready?
+3. **Manual DI Impact:** Optional build-time/runtime comparison remains undocumented; no functional blocker.
 
 ---
 
 ## Dependencies & Blocking
 
 ### External Dependencies
-- **Govern package:** Echo v5 migration blocked until govern compatibility confirmed
-- **Go 1.27 release:** GODEBUG migration planning needed (6 months)
+- **Go 1.27 release:** GODEBUG migration planning remains future work.
+- ~~Govern package: Echo v5 migration blocked until govern compatibility confirmed~~ → resolved 2026-06-28.
 
 ### Internal Dependencies
-- Phase 02 (Wire removal) depends on Phase 01 (Go 1.26)
-- Phase 03 (Database) depends on Phase 02 (Wire removal)
-- ~~Phase 04 (Echo v5) blocked by external govern package~~ → UNBLOCKED & DONE 2026-06-28: govern migrated to v5 first (plan 260628-0034), then sample followed in the same pass. Both modules on `echo/v5 v5.2.1`, full `go test -race ./...` green.
+- Phase 02 (Wire removal) depends on Phase 01 (Go 1.26) — done.
+- Phase 03 (Database) depends on Phase 02 (Wire removal) — done.
+- Phase 04 (Echo v5) unblocked by govern Echo v5 migration (plan 260628-0034) — done. Both modules on `echo/v5 v5.2.1`, full `go test -race ./...` green.
 
 ### Team Coordination
 - No coordination required for Go 1.26, Wire removal, and database optimization
@@ -550,7 +545,7 @@ go mod tidy
 
 ---
 
-**Plan Status:** In Progress — Phase 02 DONE (synced 2026-06-28)  
-**Next Review:** After Phase 01 (Go 1.26) completion  
+**Plan Status:** ✅ Completed (synced 2026-06-28)  
+**Next Review:** Before Go 1.27 upgrade or if latency targets require DB migration review  
 **Owner:** Development Team  
 **Created:** 2026-06-28

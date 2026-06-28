@@ -2,137 +2,150 @@
 
 **Created:** 2026-06-28  
 **Target:** github.com/haipham22/govern  
-**Branch:** echo-v5-migration  
-**Effort:** 24 hours
+**Branch:** feat/monorepo-migration  
+**Effort:** 24 hours  
+**Status:** ✅ Completed 2026-06-28
 
 ---
 
-## 📋 Quick Summary
+## Quick Summary
 
-Upgrade govern package Echo integration from v4.15.1 to v5.2.1 with:
-- **Security fix:** CVE-2026-25766 (path traversal on Windows)
-- **Breaking changes:** 15+ API changes requiring systematic updates
-- **5 files affected:** jwt.go, middleware.go, swagger.go, trim.go, context_test.go
+Govern Echo integration was upgraded from Echo v4.15.1 to Echo v5.2.1.
+
+- **Security fix:** CVE-2026-25766 addressed by moving to Echo v5.0.3+.
+- **Breaking changes:** Handler signatures, error handler order, HTTPError messages, and middleware APIs updated.
+- **Scope:** govern root module first, then downstream `examples/golang-sample/`.
+- **Validation:** full build/test/race validation passed during migration.
 
 ---
 
-## 🎯 Priority Matrix
+## Priority Matrix
 
 | Phase | Component | Risk | Effort | Status |
 |-------|-----------|------|--------|--------|
-| 01 | JWT Middleware | HIGH | 8h | Pending |
-| 02 | Context Helpers | MED | 5h | Pending |
-| 03 | Swagger Integration | LOW | 3h | Pending |
-| 04 | TrimStrings Middleware | LOW | 2h | Pending |
-| 05 | Tests & Documentation | MED | 6h | Pending |
+| 01 | JWT Middleware | HIGH | 8h | ✅ Done |
+| 02 | Context Helpers | MED | 5h | ✅ Done |
+| 03 | Swagger Integration | LOW | 3h | ✅ Done |
+| 04 | TrimStrings Middleware | LOW | 2h | ✅ Done |
+| 05 | Tests & Documentation | MED | 6h | ✅ Done |
 
 ---
 
-## 📁 Plan Structure
+## Plan Structure
 
 ```
 260628-0034-govern-echo-v5-upgrade/
 ├── README.md                    # This file
-└── plan.md                      # Complete migration plan
+└── plan.md                      # Complete migration record
 ```
 
 ---
 
-## 🚀 Getting Started
+## Actual Execution
 
-### Prerequisites
-1. Clone govern repository: `/Users/haipham22/Workspaces/haipham22/govern`
-2. Create feature branch: `echo-v5-migration`
-3. Read [plan.md](plan.md) for detailed steps
+### Workspace
 
-### Quick Start
 ```bash
-# Navigate to govern directory
-cd /Users/haipham22/Workspaces/haipham22/govern
-
-# Create branch
-git checkout -b echo-v5-migration
-
-# Update Echo version
-go get github.com/labstack/echo/v5@latest
-go mod tidy
-
-# Start with Phase 01: JWT Middleware
-# See plan.md for detailed steps
+cd /Users/haipham22/Workspaces/haipham22/golang-sample
 ```
 
----
+Root module is `github.com/haipham22/govern`. Sample module is `examples/golang-sample/` and imports govern via:
 
-## 📊 Phases Overview
-
-### Phase 01: JWT Middleware (8h) - CRITICAL
-- Update context signatures: `echo.Context` → `*echo.Context`
-- Fix error handling: Remove `fmt.Sprintf` from errors
-- Update middleware integration
-
-### Phase 02: Context Helpers (5h)
-- Update `GetCurrentUser`, `MustGetCurrentUser` signatures
-- Update `GetUserID`, `GetUsername` signatures
-- Fix test helper functions
-
-### Phase 03: Swagger Integration (3h)
-- Update route handler signatures
-- Fix context passing in swagger routes
-- Validate swagger UI serving
-
-### Phase 04: TrimStrings Middleware (2h)
-- Update middleware signature
-- Fix context dereferencing
-- Validate string trimming logic
-
-### Phase 05: Tests & Documentation (6h)
-- Update all test files
-- Update README with Echo v5 examples
-- Run full test suite
-
----
-
-## ⚠️ Critical Breaking Changes
-
-### 1. Context Signatures (Affects ALL handlers)
 ```go
-// ❌ Echo v4
+require github.com/haipham22/govern v0.0.0
+replace github.com/haipham22/govern => ../../
+```
+
+No `go.work` is used.
+
+### Outcome
+
+- Govern root `go.mod` uses `github.com/labstack/echo/v5 v5.2.1`.
+- Govern `http/echo` handlers/helpers use `*echo.Context`.
+- Govern `http/echo/trim.go` delegates to Echo v5 middleware.
+- Sample app migrated to Echo v5 after govern compatibility landed.
+- Echo v5 `BodyLimit` byte-count API handled in sample middleware.
+
+---
+
+## Phases Overview
+
+### Phase 01: JWT Middleware (8h) — ✅ Done
+- Updated context signatures: `echo.Context` → `*echo.Context`.
+- Fixed `echo.NewHTTPError` string message usage.
+- Updated middleware integration.
+
+### Phase 02: Context Helpers (5h) — ✅ Done
+- Updated `GetCurrentUser`, `MustGetCurrentUser` signatures.
+- Updated `GetUserID`, `GetUsername` signatures.
+- Fixed test helper usage.
+
+### Phase 03: Swagger Integration (3h) — ✅ Done
+- Updated route handler signatures.
+- Fixed context passing in swagger routes.
+- Validated swagger integration.
+
+### Phase 04: TrimStrings Middleware (2h) — ✅ Done
+- Swapped custom wrapper to Echo v5-compatible middleware.
+- Validated string trimming behavior.
+
+### Phase 05: Tests & Documentation (6h) — ✅ Done
+- Updated tests for Echo v5 APIs.
+- Synced migration docs.
+- Ran validation.
+
+---
+
+## Critical Breaking Changes Handled
+
+### 1. Context Signatures
+```go
+// Echo v4
 func handler(c echo.Context) error
 
-// ✅ Echo v5
-func handler(c *echo.Context) error  // ← pointer required
+// Echo v5
+func handler(c *echo.Context) error
 ```
 
-### 2. Error Messages (String only)
+### 2. Error Messages
 ```go
-// ❌ Echo v4
-echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("invalid: %s", field))
+// Echo v4
+return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("invalid: %s", field))
 
-// ✅ Echo v5
-echo.NewHTTPError(http.StatusBadRequest, "invalid field")  // string only
+// Echo v5
+return echo.NewHTTPError(http.StatusBadRequest, "invalid field")
 ```
 
 ### 3. Error Handler Signature
 ```go
-// ❌ Echo v4
+// Echo v4
 func customHTTPErrorHandler(err error, c echo.Context)
 
-// ✅ Echo v5
-func customHTTPErrorHandler(c *echo.Context, err error)  // ← parameter swap
+// Echo v5
+func customHTTPErrorHandler(c *echo.Context, err error)
+```
+
+### 4. BodyLimit API
+```go
+// Echo v4-style config
+"1M"
+
+// Echo v5-style config
+int64(1 << 20)
 ```
 
 ---
 
-## 🔒 Security
+## Security
 
 ### CVE-2026-25766
-- **Issue:** Path traversal vulnerability on Windows
-- **Fixed:** Echo v5.0.3+
-- **Urgency:** HIGH for Windows deployments, LOW for Linux
+- **Issue:** Path traversal vulnerability on Windows.
+- **Fixed:** Echo v5.0.3+.
+- **Status:** Mitigated by Echo v5.2.1 migration.
 
 ---
 
-## 📚 References
+## References
 
 ### Research
 - [Echo v5 Govern Compatibility Analysis](../reports/researcher-260628-0030-echo-v5-govern-compatibility.md)
@@ -143,26 +156,24 @@ func customHTTPErrorHandler(c *echo.Context, err error)  // ← parameter swap
 
 ---
 
-## 🎯 Success Criteria
+## Success Criteria
 
-- ✅ All tests pass with Echo v5
-- ✅ No breaking changes in production
-- ✅ CVE-2026-25766 fixed
-- ✅ Documentation updated
-- ✅ govern package released with Echo v5 support
-
----
-
-## 📞 Questions?
-
-See [plan.md](plan.md) for:
-- Detailed implementation steps
-- Risk assessment
-- Rollback strategy
-- Timeline and milestones
+- ✅ All tests pass with Echo v5.
+- ✅ No production breaking changes found during validation.
+- ✅ CVE-2026-25766 mitigated.
+- ✅ Documentation updated.
+- ⏳ govern package release/tag still separate release work.
 
 ---
 
-**Status:** Ready for implementation  
-**Target:** Week 1  
+## Follow-up
+
+- Release/tag govern package with Echo v5 support when ready.
+- Publish downstream migration note if needed.
+- Monitor Echo v5 patch releases.
+
+---
+
+**Status:** ✅ Completed 2026-06-28  
+**Target:** Achieved  
 **Owner:** Development Team

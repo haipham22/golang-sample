@@ -33,3 +33,17 @@ func Conflict(resource string) *Error {
 func Internal(message string) *Error {
 	return New(CodeInternal, message)
 }
+
+// Validation returns an invalid-input error with single-field detail.
+func Validation(property, message string) *Error {
+	return &Error{
+		Code:    CodeInvalid,
+		message: message,
+		Errors:  []FieldError{{Property: property, Msg: message}},
+	}
+}
+
+// RateLimit returns an error for requests blocked by rate limiting.
+func RateLimit(message string) *Error {
+	return New(CodeRateLimit, message)
+}

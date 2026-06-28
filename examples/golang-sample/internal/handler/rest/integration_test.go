@@ -14,15 +14,15 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	apiValidator "github.com/haipham22/golang-sample/internal/validator"
 	authctrl "github.com/haipham22/golang-sample/internal/handler/rest/controllers/auth"
 	healthctrl "github.com/haipham22/golang-sample/internal/handler/rest/controllers/health"
 	productctrl "github.com/haipham22/golang-sample/internal/handler/rest/controllers/product"
-	authservice "github.com/haipham22/golang-sample/internal/usecase/auth"
-	productservice "github.com/haipham22/golang-sample/internal/usecase/product"
+	"github.com/haipham22/golang-sample/internal/orm"
 	productRepo "github.com/haipham22/golang-sample/internal/repository/postgres"
 	userRepo "github.com/haipham22/golang-sample/internal/repository/user"
-	"github.com/haipham22/golang-sample/internal/orm"
+	authservice "github.com/haipham22/golang-sample/internal/usecase/auth"
+	productservice "github.com/haipham22/golang-sample/internal/usecase/product"
+	apiValidator "github.com/haipham22/golang-sample/internal/validator"
 )
 
 // jwtSecretTest is a 32+ char secret for integration tests.

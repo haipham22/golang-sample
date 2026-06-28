@@ -68,8 +68,10 @@ if apperrors.IsCode(err, apperrors.CodeNotFound) { ... }
 - **Usecase** (`internal/usecase/...`): emit domain errors with `NewCode` /
   convenience constructors (`Conflict`, `Unauthorized`); perform business
   validation before touching the repo.
-- **Handler** (`internal/handler/rest/...`): bind/validate errors →
-  `WrapCode(CodeInvalid, err)`; otherwise return the usecase error unchanged.
+- **Handler** (`internal/handler/rest/...`): bind errors →
+  `WrapCode(CodeInvalid, err)`; validation errors → return `c.Validate(...)`
+  unchanged so field details from `apperrors.Validation(...)` are preserved.
+  Otherwise return the usecase error unchanged.
 
 ## HTTP error response
 
@@ -89,8 +91,8 @@ type Response struct {
 
 - `Code.ClientMessage()` returns a sanitized, client-safe message — **5xx never
   leaks internal details**.
-- For `CodeInvalid`, `enrichValidation` fills `Errors[]` with field-level detail
-  extracted from a wrapped `validator.ValidationError`.
+- For `CodeInvalid`, `apperrors.Resolve` fills `Errors[]` from field-level
+  detail carried by `apperrors.Validation(...)`.
 - `apperrors.LogRequestError(log, err, path, status)` logs at the right level
   (conflict → Warn, 5xx → Error+err, 4xx → Warn); conflict raw errors are not
   logged (may leak existence).
@@ -111,6 +113,6 @@ type Response struct {
 
 ## Testing
 
-The package is fully unit-tested (`internal/errors/*_test.go`, 90.9% coverage):
+The package is fully unit-tested (`internal/errors/*_test.go`, 93.7% coverage):
 formatting, nil safety, unwrap chain, `GetCode`/`IsCode`, sentinel recognition,
 HTTP status mapping, `Resolve`, and logging branches.

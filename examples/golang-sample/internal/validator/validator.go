@@ -8,8 +8,6 @@ import (
 	validatePkg "github.com/go-playground/validator/v10"
 
 	apperrors "github.com/haipham22/golang-sample/internal/errors"
-
-	"github.com/haipham22/golang-sample/internal/schemas"
 )
 
 // Precompiled regex for array index notation
@@ -22,15 +20,8 @@ type CustomValidator struct {
 func (cv *CustomValidator) Validate(i any) error {
 	if err := cv.validator.Struct(i); err != nil {
 		for _, fieldErr := range err.(validatePkg.ValidationErrors) {
-			// Create detailed validation error with property information
 			property := FormatStructField(fieldErr)
-			detail := schemas.ErrorDetail{
-				Property: property,
-				Msg:      "Validation failed for field: " + property,
-			}
-			// Wrap the validation error with govern code and include detail in message
-			return apperrors.WrapCode(apperrors.CodeInvalid,
-				&ValidationError{Detail: detail})
+			return apperrors.Validation(property, "Validation failed for field: "+property)
 		}
 	}
 	return nil
@@ -57,18 +48,4 @@ func FormatStructField(fieldError validatePkg.FieldError) string {
 
 	// Replace array index notation with an empty string
 	return arrayIndexRe.ReplaceAllString(field, "")
-}
-
-// ValidationError represents a validation error with detailed information
-type ValidationError struct {
-	Detail schemas.ErrorDetail
-}
-
-func (e *ValidationError) Error() string {
-	return e.Detail.Msg
-}
-
-// GetProperty returns the property that failed validation
-func (e *ValidationError) GetProperty() string {
-	return e.Detail.Property
 }

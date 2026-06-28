@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/labstack/echo/v5"
 	apperrors "github.com/haipham22/golang-sample/internal/errors"
+	"github.com/labstack/echo/v5"
 )
 
 // BenchmarkResolveError benchmarks error resolution across different error types

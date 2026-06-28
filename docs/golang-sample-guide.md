@@ -424,29 +424,29 @@ err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 ### Error Handling
 
 ```go
-// Storage layer
-return errors.New("user not found")
+// Storage/service layer returns typed app errors.
+return apperrors.NewCode(apperrors.CodeNotFound, "user not found")
 
-// Service layer wraps with context
-return fmt.Errorf("failed to find user: %w", err)
+// Add context when preserving a lower-level cause.
+return apperrors.WrapCode(apperrors.CodeInternal, err)
 
-// Controller maps to HTTP status
-if errors.Is(err, ErrUserNotFound) {
-    return echo.NewHTTPError(http.StatusNotFound, "User not found")
+// Controller returns errors unchanged; HTTP mapping is centralized in handler.go.
+if err != nil {
+    return err
 }
 ```
 
 ### Validation
 
 ```go
-// In controller
-if err := v.validator.Struct(req); err != nil {
-    return echo.NewHTTPError(http.StatusBadRequest, formatValidationError(err))
+// In controller: return validator errors unchanged so field details survive.
+if err := c.Validate(req); err != nil {
+    return err
 }
 
 // In service
 if req.Password != req.ConfirmPassword {
-    return ErrPasswordMismatch
+    return apperrors.NewCode(apperrors.CodeInvalid, "password mismatch")
 }
 ```
 

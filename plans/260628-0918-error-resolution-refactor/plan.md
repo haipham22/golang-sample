@@ -1,6 +1,6 @@
 # Plan: Move Error Resolution into the Sample (`internal/errors`)
 
-**Date:** 2026-06-28 | **Branch:** feat/monorepo-migration | **Status:** Revised (post red-team)
+**Date:** 2026-06-28 | **Branch:** feat/monorepo-migration | **Status:** Implemented (validated, reviewed)
 **Scope:** `examples/golang-sample/internal/errors`, `internal/handler/rest` (+ `middlewares/ratelimit.go`), `internal/validator`, `internal/schemas`
 
 ---
@@ -58,7 +58,7 @@ func Validation(property, msg string) *Error {
 
 ### 2. Validator emits the typed error directly
 
-`CustomValidator.Validate` returns `apperrors.Validation(property, msg)` instead of `*validator.ValidationError`. Controllers stop wrapping validation errors (`auth.go:39,76` `WrapCode(CodeInvalid, err)` → `return err`). `validator.ValidationError` type is removed (its tests updated).
+`CustomValidator.Validate` returns `apperrors.Validation(property, msg)` instead of `*validator.ValidationError`. Controllers with `c.Validate(...)` return validation errors unchanged (`product.go`); bind errors still use `WrapCode(CodeInvalid, err)`. `validator.ValidationError` type is removed.
 
 ### 3. `Resolve` reads `Errors` + uses `NewBody` (D5)
 
@@ -102,24 +102,24 @@ Delete `enrichValidation`, the double `GetCode`, and the redundant unknown case.
 ## Phases
 
 ### Phase 0 — Consolidate producers (D2, D3)
-- [ ] `ratelimit.go`: return `apperrors.New(CodeRateLimit, ...)` (or a `RateLimit(...)` helper) instead of raw `c.JSON(map{...})`
-- [ ] Delete `schemas.ErrResponseBody` (verify 0 usages first)
-- [ ] Add `NewBody(msg, path, requestID)` helper; route `Resolve` + handler echo/unknown branches through it
-- [ ] `mise exec -- go test ./...`
+- [x] `ratelimit.go`: return `apperrors.New(CodeRateLimit, ...)` (or a `RateLimit(...)` helper) instead of raw `c.JSON(map{...})`
+- [x] Delete `schemas.ErrResponseBody` (verify 0 usages first)
+- [x] Add `NewBody(msg, path, requestID)` helper; route `Resolve` + handler echo/unknown branches through it
+- [x] `mise exec -- go test ./...`
 
 ### Phase 1 — Constructor-based enrichment (D1) — no behavior change
-- [ ] Add `Errors []FieldError` to `*apperrors.Error`; add `Validation(property, msg)` constructor
-- [ ] `CustomValidator.Validate` returns `apperrors.Validation(...)`; remove `validator.ValidationError`
-- [ ] Controllers (`auth.go`): drop `WrapCode(CodeInvalid, err)` for validation → `return err`
-- [ ] `Resolve`: read `e.Errors` on `CodeInvalid` (with fallback to generic msg when absent)
-- [ ] **Run `./internal/handler/rest/...` too** (proves no behavior change)
-- [ ] `mise exec -- go test ./internal/errors/... ./internal/validator/... ./internal/handler/rest/...`
+- [x] Add `Errors []FieldError` to `*apperrors.Error`; add `Validation(property, msg)` constructor
+- [x] `CustomValidator.Validate` returns `apperrors.Validation(...)`; remove `validator.ValidationError`
+- [x] Controllers with `c.Validate(...)`: drop `WrapCode(CodeInvalid, err)` for validation → `return err`; bind errors still wrap
+- [x] `Resolve`: read `e.Errors` on `CodeInvalid` (with fallback to generic msg when absent)
+- [x] **Run `./internal/handler/rest/...` too** (proves no behavior change)
+- [x] `mise exec -- go test ./internal/errors/... ./internal/validator/... ./internal/handler/rest/...`
 
 ### Phase 2 — Slim the handler (D6)
-- [ ] Rewrite `resolveError` (echo-only + delegate); extract `resolveEchoError`
-- [ ] Delete `enrichValidation`; clean unused imports (`errors`, `apiValidator`)
-- [ ] Migrate `handler_test.go`: typed+validation assertions → `internal/errors`; echo + unknown stay in handler tests
-- [ ] `mise exec -- go build ./... && mise exec -- go test -race ./...`
+- [x] Rewrite `resolveError` (echo-only + delegate); extract `resolveEchoError`
+- [x] Delete `enrichValidation`; clean unused imports (`errors`, `apiValidator`)
+- [x] Migrate `handler_test.go`: typed+validation assertions → `internal/errors`; echo + unknown stay in handler tests
+- [x] `mise exec -- go build ./... && mise exec -- go test -race ./...`
 
 ### Phase 3 — Drop `Response.Error` *(DEFERRED — D4)*
 - [ ] Not this cycle. Revisit after Phase 0–2 land. When done: grep for `error` JSON-key reliance **before** dropping; update legacy-compat comment; consider deprecation alias.
@@ -128,14 +128,14 @@ Delete `enrichValidation`, the double `GetCode`, and the redundant unknown case.
 
 ## Tests (must-have cases — red-team flagged gaps)
 
-- [ ] **5xx sanitization:** `apperrors.New(CodeInternal, "db pass xyz")` → `body.Msg` must NOT contain the secret
-- [ ] **`CodeInvalid` w/o validation cause** → `Msg == "invalid request parameters"`, `Errors` empty
-- [ ] **`CodeInvalid` with validation** → `Msg == field msg`, `Errors[0].Property` correct
-- [ ] **`nil` err** guard (echo branch must not panic)
-- [ ] **Echo 4xx pass-through** + **5xx sanitize** (existing, preserve)
-- [ ] **Unknown → 500** (existing, preserve; also cover in `internal/errors`)
-- [ ] **(defensive)** echo+apperrors overlap — unreachable today, pin a test
-- [ ] **Ratelimit (429)** now flows through `Resolve` → consistent body
+- [x] **5xx sanitization:** `apperrors.New(CodeInternal, "db pass xyz")` → `body.Msg` must NOT contain the secret
+- [x] **`CodeInvalid` w/o validation cause** → `Msg == "invalid request parameters"`, `Errors` empty
+- [x] **`CodeInvalid` with validation** → `Msg == field msg`, `Errors[0].Property` correct
+- [x] **`nil` err** guard (echo branch must not panic)
+- [x] **Echo 4xx pass-through** + **5xx sanitize** (existing, preserve)
+- [x] **Unknown → 500** (existing, preserve; also cover in `internal/errors`)
+- [x] **Echo status-code sentinel** — preserve delivery-layer precedence and sanitize 5xx
+- [x] **Ratelimit (429)** now flows through `Resolve` → consistent body
 
 ---
 
@@ -150,7 +150,7 @@ Delete `enrichValidation`, the double `GetCode`, and the redundant unknown case.
 | `internal/handler/rest/handler.go` | slim `resolveError`; `+ resolveEchoError`; delete `enrichValidation` |
 | `internal/handler/rest/handler_test.go` | split/migrate assertions |
 | `internal/handler/rest/middlewares/ratelimit.go` | return typed `CodeRateLimit` error |
-| `internal/handler/rest/controllers/auth/auth.go` | drop validation `WrapCode` |
+| `internal/handler/rest/controllers/product/product.go` | drop validation `WrapCode`; bind errors still wrap |
 | `internal/schemas/response.go` | delete `ErrResponseBody` |
 
 ---
@@ -190,7 +190,7 @@ Three reviewers (architecture / backward-compat / correctness): verdicts **ship-
 
 ---
 
-## Open Questions
+## Resolved Questions
 
-1. Ratelimit message: keep current wording ("Rate limit exceeded…") verbatim, or align to `ClientMessage()` ("Too many requests")? → keep current wording via constructor arg
-2. `Validation(...)` supports only single field (parity with today); multi-error left as future contract change → documented on the constructor
+1. Ratelimit message: aligned to `ClientMessage()` (`"Too many requests"`) for uniform public envelope; constructor detail is not exposed.
+2. `Validation(...)` supports only single field (parity with today); multi-error left as future contract change.

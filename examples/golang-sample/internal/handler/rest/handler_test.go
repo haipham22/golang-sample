@@ -8,8 +8,6 @@ import (
 	"github.com/labstack/echo/v5"
 
 	apperrors "github.com/haipham22/golang-sample/internal/errors"
-	schemas "github.com/haipham22/golang-sample/internal/schemas"
-	apiValidator "github.com/haipham22/golang-sample/internal/validator"
 )
 
 // TestResolveError_AppErrors verifies centralized code -> status/body mapping.
@@ -43,14 +41,10 @@ func TestResolveError_AppErrors(t *testing.T) {
 	}
 }
 
-// TestResolveError_ValidationEnrichment verifies CodeInvalid errors wrapping a
-// validator.ValidationError get field-level details.
+// TestResolveError_ValidationEnrichment verifies CodeInvalid errors with field
+// detail are resolved by internal/errors, not by handler-specific enrichment.
 func TestResolveError_ValidationEnrichment(t *testing.T) {
-	ve := &apiValidator.ValidationError{Detail: schemas.ErrorDetail{
-		Property: "email",
-		Msg:      "email is required",
-	}}
-	err := apperrors.WrapCode(apperrors.CodeInvalid, ve)
+	err := apperrors.Validation("email", "email is required")
 
 	status, body := resolveError(err, "/api/x", "")
 	if status != http.StatusBadRequest {
@@ -92,5 +86,51 @@ func TestResolveError_UnknownDefaults500(t *testing.T) {
 	}
 	if body.Msg != "Internal Server Error" {
 		t.Errorf("Msg = %q", body.Msg)
+	}
+}
+
+// httpStatusCoderErr is a non-*echo.HTTPError type that implements Echo's
+// HTTPStatusCoder interface, letting us exercise the echo.StatusCode sentinel
+// branch of resolveError (which mirrors how Echo's own unexported httpError
+// sentinels like ErrInternal are surfaced).
+type httpStatusCoderErr struct{ code int }
+
+func (e httpStatusCoderErr) Error() string   { return "coder error" }
+func (e httpStatusCoderErr) StatusCode() int { return e.code }
+
+// TestResolveError_EchoStatusCodeSentinel covers the branch where the error is
+// not *echo.HTTPError but implements HTTPStatusCoder (echo.StatusCode != 0),
+// plus the 5xx sanitization inside that branch.
+func TestResolveError_EchoStatusCodeSentinel(t *testing.T) {
+	t.Run("4xx passes StatusText", func(t *testing.T) {
+		status, body := resolveError(httpStatusCoderErr{code: http.StatusNotFound}, "/p", "r")
+		if status != http.StatusNotFound {
+			t.Fatalf("status = %d, want 404", status)
+		}
+		if body.Msg != "Not Found" {
+			t.Errorf("Msg = %q, want %q", body.Msg, http.StatusText(http.StatusNotFound))
+		}
+	})
+
+	t.Run("5xx sanitized", func(t *testing.T) {
+		status, body := resolveError(httpStatusCoderErr{code: http.StatusServiceUnavailable}, "/p", "r")
+		if status != http.StatusServiceUnavailable {
+			t.Fatalf("status = %d, want 503", status)
+		}
+		if body.Msg != "Internal Server Error" {
+			t.Errorf("5xx Msg = %q, want sanitized %q", body.Msg, "Internal Server Error")
+		}
+	})
+}
+
+// TestResolveError_EchoHTTPError_EmptyMessage covers the empty-message fallback
+// (clientMsg == "" -> http.StatusText(code)) in the *echo.HTTPError branch.
+func TestResolveError_EchoHTTPError_EmptyMessage(t *testing.T) {
+	status, body := resolveError(echo.NewHTTPError(http.StatusNotFound, ""), "/p", "")
+	if status != http.StatusNotFound {
+		t.Fatalf("status = %d, want 404", status)
+	}
+	if body.Msg != "Not Found" {
+		t.Errorf("Msg = %q, want fallback %q", body.Msg, "Not Found")
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	apperrors "github.com/haipham22/golang-sample/internal/errors"
 	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 )
@@ -88,9 +89,8 @@ func TestRateLimit_BlocksRequestsOverLimit(t *testing.T) {
 	c = e.NewContext(req, rec)
 
 	err := h(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusTooManyRequests, rec.Code, "Request should be rate limited")
-	assert.Contains(t, rec.Body.String(), "Too many requests", "Should return rate limit error message")
+	assert.Error(t, err)
+	assert.True(t, apperrors.IsCode(err, apperrors.CodeRateLimit), "Request should be rate limited")
 }
 
 func TestRateLimit_SlidingWindow(t *testing.T) {
@@ -134,8 +134,8 @@ func TestRateLimit_SlidingWindow(t *testing.T) {
 	c = e.NewContext(req, rec)
 
 	err := h(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusTooManyRequests, rec.Code)
+	assert.Error(t, err)
+	assert.True(t, apperrors.IsCode(err, apperrors.CodeRateLimit))
 
 	// Wait for window to expire
 	time.Sleep(3 * time.Second)
@@ -189,8 +189,8 @@ func TestRateLimit_DifferentIPs(t *testing.T) {
 	c = e.NewContext(req, rec)
 
 	err := h(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusTooManyRequests, rec.Code)
+	assert.Error(t, err)
+	assert.True(t, apperrors.IsCode(err, apperrors.CodeRateLimit))
 
 	// But IP2 should still be able to make requests
 	for i := range 2 {
@@ -237,8 +237,8 @@ func TestRateLimit_WithRealIP(t *testing.T) {
 	c = e.NewContext(req, rec)
 
 	err = h(c)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusTooManyRequests, rec.Code)
+	assert.Error(t, err)
+	assert.True(t, apperrors.IsCode(err, apperrors.CodeRateLimit))
 }
 
 func TestDefaultRateLimiterConfig(t *testing.T) {

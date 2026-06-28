@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -97,72 +96,29 @@ func makeHTTPErrorHandler(log *zap.SugaredLogger) echo.HTTPErrorHandler {
 	}
 }
 
-// resolveError maps an error to an HTTP status and a standard response body.
-// Order: apperrors-typed errors use centralized resolution (with validation
-// detail enrichment), echo.HTTPError values are sanitized, everything else is
-// a generic 500.
+// resolveError maps delivery-specific Echo errors first, then delegates typed
+// application errors and unknown fallback to apperrors.Resolve.
 func resolveError(err error, path, requestID string) (int, apperrors.Response) {
-	// 1. apperrors-typed error: centralized status + body mapping.
-	if code, ok := apperrors.GetCode(err); ok {
-		status, body := apperrors.Resolve(err, path, requestID)
-		if code == apperrors.CodeInvalid {
-			enrichValidation(&body, err)
-		}
-		return status, body
-	}
-
-	// 2. Echo HTTP error: pass through status, sanitize 5xx messages.
 	if he, ok := err.(*echo.HTTPError); ok {
-		clientMsg := he.Message
-		if he.Code >= 500 {
-			clientMsg = http.StatusText(http.StatusInternalServerError)
-		}
-		if clientMsg == "" {
-			clientMsg = http.StatusText(he.Code)
-		}
-		return he.Code, apperrors.Response{
-			Msg:       clientMsg,
-			Error:     clientMsg,
-			Path:      path,
-			RequestID: requestID,
-		}
+		return resolveEchoError(he.Code, he.Message, path, requestID)
 	}
 
-	// 2b. Echo sentinel errors (ErrNotFound, ErrBadRequest, …) are an unexported
-	// *httpError type that implements HTTPStatusCoder but is not *HTTPError, so
-	// the branch above misses them. echo.StatusCode handles both via errors.As.
+	// Echo sentinel errors (ErrNotFound, ErrBadRequest, …) are unexported types
+	// that implement HTTPStatusCoder. echo.StatusCode handles them via errors.As.
 	if code := echo.StatusCode(err); code != 0 {
-		msg := http.StatusText(code)
-		if code >= 500 {
-			msg = http.StatusText(http.StatusInternalServerError)
-		}
-		return code, apperrors.Response{
-			Msg:       msg,
-			Error:     msg,
-			Path:      path,
-			RequestID: requestID,
-		}
+		return resolveEchoError(code, http.StatusText(code), path, requestID)
 	}
 
-	// 3. Unknown error: generic internal server error.
-	return http.StatusInternalServerError, apperrors.Response{
-		Msg:       http.StatusText(http.StatusInternalServerError),
-		Error:     http.StatusText(http.StatusInternalServerError),
-		Path:      path,
-		RequestID: requestID,
-	}
+	return apperrors.Resolve(err, path, requestID)
 }
 
-// enrichValidation fills in field-level details when err wraps a
-// validator.ValidationError; otherwise leaves the generic invalid-input body.
-func enrichValidation(body *apperrors.Response, err error) {
-	var validationErr *apiValidator.ValidationError
-	if errors.As(err, &validationErr) {
-		body.Msg = validationErr.Detail.Msg
-		body.Error = validationErr.Detail.Msg
-		body.Errors = []apperrors.FieldError{{
-			Property: validationErr.Detail.Property,
-			Msg:      validationErr.Detail.Msg,
-		}}
+func resolveEchoError(status int, message string, path, requestID string) (int, apperrors.Response) {
+	clientMsg := message
+	if status >= 500 {
+		clientMsg = http.StatusText(http.StatusInternalServerError)
 	}
+	if clientMsg == "" {
+		clientMsg = http.StatusText(status)
+	}
+	return status, apperrors.NewBody(clientMsg, path, requestID)
 }

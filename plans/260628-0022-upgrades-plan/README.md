@@ -1,21 +1,21 @@
 # Golang Sample Upgrades Plan
 
 **Created:** 2026-06-28  
-**Status:** In Progress — Phase 02 (Wire removal) **DONE** (synced 2026-06-28)  
+**Status:** ✅ Completed (synced 2026-06-28)  
 **Total Effort:** 16 hours
 
 ---
 
 ## Quick Overview
 
-This plan addresses four upgrade tracks for the golang-sample project (Wire removal already DONE):
+This plan addresses four completed upgrade tracks for the golang-sample project:
 
 | Upgrade | Decision | Effort | Timeline | Risk |
 |---------|----------|--------|----------|------|
-| **Wire removal** | ✅ **DONE** (`1672d69`) | 4h | — | Low |
-| **Go 1.26** | ⬜ Next (currently on 1.25.8) | 4h | Week 1 | Very Low |
-| **Database Layer** | ⬜ Optimize GORM | 6h | Week 1 | Low |
-| **Echo v5** | ⚠️ Defer | 6h | Q3-Q4 2026 | Med-High |
+| **Wire removal** | ✅ **DONE** (`1672d69`) | 4h | done | Low |
+| **Go 1.26** | ✅ **DONE** (1.26.4) | 4h | done | Very Low |
+| **Database Layer** | ✅ **DONE** (revised 3-task scope) | 3h | done | Low |
+| **Echo v5** | ✅ **DONE** (v5.2.1) | 6h | done | Med-High |
 
 ---
 
@@ -33,11 +33,11 @@ This plan addresses four upgrade tracks for the golang-sample project (Wire remo
 - **Team velocity** - Fastest development speed
 - **Optimization path** - Add indexes, optimize queries, tune pool
 
-### Echo v5 Migration (DEFERRED)
-- **Govern compatibility unknown** - Must verify govern package support
-- **Echo v4 stable** - No security issues, production-ready
-- **Medium-High risk** - 15+ breaking changes
-- **Re-evaluate Q3-Q4 2026**
+### Echo v5 Migration (DONE)
+- **Govern compatibility resolved** - govern migrated to Echo v5 first
+- **Sample migrated** - Echo v5.2.1 across sample app
+- **Medium-High risk handled** - handler, middleware, and error APIs updated
+- **Validation green** - build/tests/race passed after migration
 
 ---
 
@@ -47,10 +47,10 @@ This plan addresses four upgrade tracks for the golang-sample project (Wire remo
 - **[plan.md](plan.md)** - Overview and summary
 
 ### Implementation Phases
-- **[phase-01-go-1.26-upgrade.md](phase-01-go-1.26-upgrade.md)** - Go 1.26 upgrade (4h) — ⬜ pending
+- **[phase-01-go-1.26-upgrade.md](phase-01-go-1.26-upgrade.md)** - Go 1.26 upgrade (4h) — ✅ DONE
 - **[phase-02-remove-wire-manual-di.md](phase-02-remove-wire-manual-di.md)** - Remove Wire → manual DI (4h) — ✅ DONE (`1672d69`)
-- **[phase-02-database-optimization.md](phase-02-database-optimization.md)** - GORM optimization (6h) — ⬜ pending
-- **[phase-03-echo-v5-migration.md](phase-03-echo-v5-migration.md)** - Echo v5 migration (6h, DEFERRED) — ⏸ blocked by govern
+- **[phase-02-database-optimization.md](phase-02-database-optimization.md)** - GORM optimization (revised 3-task scope) — ✅ DONE
+- **[phase-03-echo-v5-migration.md](phase-03-echo-v5-migration.md)** - Echo v5 migration (6h) — ✅ DONE
 
 ### Research Reports
 - **[../reports/researcher-260628-0022-go-1.26-release-notes.md](../reports/researcher-260628-0022-go-1.26-release-notes.md)** - Go 1.26 analysis
@@ -60,43 +60,13 @@ This plan addresses four upgrade tracks for the golang-sample project (Wire remo
 
 ---
 
-## Quick Start
+## Current Follow-up
 
-### Immediate Actions (Week 1)
+No implementation work left in this plan. Future work only if new evidence appears:
 
-```bash
-# 1. Update mise.toml
-vim mise.toml
-# Change: go = "1.26.0"
-
-# 2. Update go.mod
-vim go.mod
-# Change: go 1.26.0
-
-# 3. Install Go 1.26
-mise install
-
-# 4. Run modernizers
-mise exec -- go fix ./...
-
-# 5. Verify tests
-mise exec -- go test ./...
-
-# 6. Add database indexes
-psql -d golang_sample
-CREATE INDEX idx_users_username ON users(username);
-CREATE INDEX idx_users_email ON users(email);
-
-# 7. Tune connection pool (if needed)
-vim internal/storage/user/new.go
-# Adjust SetMaxIdleConns, SetMaxOpenConns
-```
-
-### Deferred Actions (Q3-Q4 2026)
-
-- Monitor Echo v5 adoption
-- Check govern package Echo v5 support
-- Re-evaluate migration timing
+- Run production-like benchmarks before claiming app-specific Go 1.26 GC gains.
+- Define latency targets before considering pgx/sqlc or more DB optimization.
+- Revisit GODEBUG settings before Go 1.27 upgrade.
 
 ---
 
@@ -119,42 +89,29 @@ vim internal/storage/user/new.go
 
 **Recommendation:** Stay with GORM - adequate performance for API scale, zero migration cost.
 
-### Echo v5 Concerns
-- 15+ breaking changes
-- Govern package compatibility unknown
-- Echo v4 stable and production-ready
-- Medium-High risk migration
+### Echo v5 Outcome
+- 15+ breaking changes handled
+- Govern package compatibility resolved first
+- Sample app migrated to Echo v5.2.1
+- Full validation passed
 
-**Recommendation:** Defer until govern package confirms Echo v5 support.
+**Recommendation:** Done; monitor upstream Echo v5 releases.
 
 ---
 
 ## Timeline
 
 ```
-Week 1 (Immediate)
-├── Phase 01: Go 1.26 Upgrade (4h)
-│   ├── Update mise.toml, go.mod
-│   ├── Run go fix
-│   ├── Verify tests pass
-│   └── Update CI/CD
-└── Phase 02: Database Optimization (6h)
-    ├── Add database indexes
-    ├── Optimize GORM queries
-    ├── Tune connection pool
-    └── Establish performance baseline
+2026-06-28
+├── Phase 01: Go 1.26 Upgrade — DONE
+├── Phase 02: Wire removal — DONE
+├── Phase 02: Database Optimization — DONE (revised audit scope)
+└── Phase 03: Echo v5 Migration — DONE (govern first, sample second)
 
-Q2 2026
-├── Monitor Go 1.26 performance improvements
-├── Validate database optimization results
-└── Document performance baselines
-
-Q3-Q4 2026 (Deferred)
-└── Phase 03: Echo v5 Migration (6h)
-    ├── Verify govern package support
-    ├── Execute migration
-    ├── Comprehensive testing
-    └── Deployment
+Future
+├── Benchmark app-specific Go 1.26 GC impact if needed
+├── Define DB latency targets before deeper DB migration work
+└── Plan Go 1.27 upgrade/GODEBUG cleanup
 ```
 
 ---
@@ -193,11 +150,9 @@ Q3-Q4 2026 (Deferred)
 
 ## Next Steps
 
-1. **Review Plan** - Read full plan documents
-2. **Approve Phases** - Confirm Go 1.26 and DB optimization
-3. **Start Implementation** - Begin Phase 01
-4. **Monitor Progress** - Track completion metrics
-5. **Re-evaluate Echo v5** - Check govern package in Q3-Q4 2026
+1. **Benchmark only if needed** - Validate app-specific GC/DB performance with production-like workload
+2. **Go 1.27 prep** - Review deprecated GODEBUG settings before next upgrade
+3. **Echo v5 upkeep** - Monitor upstream patch releases
 
 ---
 
@@ -205,6 +160,6 @@ Q3-Q4 2026 (Deferred)
 
 **Questions?** Refer to individual phase documents for detailed implementation steps and acceptance criteria.
 
-**Plan Status:** In Progress — Phase 02 (Wire removal) DONE (synced 2026-06-28)  
+**Plan Status:** ✅ Completed (synced 2026-06-28)  
 **Created:** 2026-06-28  
 **Owner:** Development Team

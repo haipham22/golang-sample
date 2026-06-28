@@ -28,6 +28,8 @@ const jwtExpiration = 72 * time.Hour
 // ErrMissingJWTSecret is returned when the API secret is not configured.
 var ErrMissingJWTSecret = stderrors.New("JWT secret is required but not configured (set api.secret)")
 
+var newGormDB = postgres.NewGormDB
+
 // New creates the HTTP server with all dependencies wired manually (replaces
 // the former code-generated Wire injector). It mirrors the former
 // wire_gen.go dependency graph:
@@ -48,7 +50,7 @@ func New(
 	}
 
 	// 2. Initialize database (returns cleanup on success).
-	db, cleanup, err := postgres.NewGormDB(appConfig.Postgres.DSN, appConfig.App.Debug)
+	db, cleanup, err := newGormDB(appConfig.Postgres.DSN, appConfig.App.Debug)
 	if err != nil {
 		return nil, nil, err
 	}

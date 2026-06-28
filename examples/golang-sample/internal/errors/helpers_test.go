@@ -14,6 +14,7 @@ func TestHelpers(t *testing.T) {
 		{"unauthorized", Unauthorized("no token"), CodeUnauthorized},
 		{"forbidden", Forbidden("no access"), CodeForbidden},
 		{"conflict", Conflict("user"), CodeConflict},
+		{"rate limit", RateLimit("slow down"), CodeRateLimit},
 		{"internal", Internal("boom"), CodeInternal},
 	}
 	for _, tt := range tests {
@@ -43,15 +44,36 @@ func TestResolve(t *testing.T) {
 		}
 	})
 
-	t.Run("validation can enrich errors", func(t *testing.T) {
-		status, body := Resolve(NewCode(CodeInvalid, "bad"), "/api/x", "")
-		body.Errors = []FieldError{{Property: "email", Msg: "required"}}
-		body.Msg = "email is required"
+	t.Run("validation enriches field errors", func(t *testing.T) {
+		status, body := Resolve(Validation("email", "email is required"), "/api/x", "")
 		if status != 400 {
 			t.Errorf("status = %d, want 400", status)
 		}
-		if len(body.Errors) != 1 || body.Errors[0].Property != "email" {
+		if body.Msg != "email is required" || body.Error != "email is required" {
+			t.Errorf("body msg/error = %q/%q, want field message", body.Msg, body.Error)
+		}
+		if len(body.Errors) != 1 || body.Errors[0].Property != "email" || body.Errors[0].Msg != "email is required" {
 			t.Errorf("field error not enriched: %+v", body.Errors)
+		}
+	})
+
+	t.Run("invalid without field errors stays generic", func(t *testing.T) {
+		status, body := Resolve(NewCode(CodeInvalid, "bad"), "/api/x", "")
+		if status != 400 {
+			t.Errorf("status = %d, want 400", status)
+		}
+		if body.Msg != "invalid request parameters" || len(body.Errors) != 0 {
+			t.Errorf("body = %+v, want generic invalid without field errors", body)
+		}
+	})
+
+	t.Run("wrapped validation keeps field errors", func(t *testing.T) {
+		status, body := Resolve(WrapCode(CodeInvalid, Validation("name", "name is required")), "/api/x", "")
+		if status != 400 {
+			t.Errorf("status = %d, want 400", status)
+		}
+		if len(body.Errors) != 1 || body.Errors[0].Property != "name" || body.Msg != "name is required" {
+			t.Errorf("body = %+v, want wrapped validation detail", body)
 		}
 	})
 

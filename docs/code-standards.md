@@ -1,6 +1,6 @@
 # Code Standards & Development Guidelines
 
-**Last Updated**: 2026-02-26
+**Last Updated**: 2026-06-28
 **Version**: 2.0.0
 **Applies To**: All code within golang-sample project
 
@@ -399,7 +399,7 @@ internal/api/
 
 ### Test Coverage
 
-**⚠️ Current State: 0% coverage** (No tests implemented)
+**Current State:** sample app has broad unit coverage; run `mise exec -- go test -cover ./...` for current package-level numbers.
 
 **Minimum Coverage Target**: 80%
 - Use `go test -cover ./...` to check coverage
@@ -452,16 +452,10 @@ if err != nil {
 }
 ```
 
-**Custom Error Types**:
+**Typed app errors**:
 ```go
-type ValidationError struct {
-    Field   string
-    Message string
-}
-
-func (e *ValidationError) Error() string {
-    return fmt.Sprintf("validation failed for field %s: %s", e.Field, e.Message)
-}
+return apperrors.Validation("email", "email is required")
+return apperrors.WrapCode(apperrors.CodeInternal, err)
 ```
 
 ### Error Handling in Handlers
@@ -471,14 +465,18 @@ func (e *ValidationError) Error() string {
 func (c *Controller) CreateUser(ctx echo.Context) error {
     var req schemas.UserRegisterRequest
     if err := ctx.Bind(&req); err != nil {
-        return errors.NewRequestBindingError(err)
+        return apperrors.WrapCode(apperrors.CodeInvalid, err)
+    }
+    if err := ctx.Validate(req); err != nil {
+        return err
     }
 
-    if err := c.storage.CreateUser(ctx.Request().Context(), &user); err != nil {
-        return errors.Wrap(err, errors.ErrInternalServerError, nil)
+    user, err := c.service.CreateUser(ctx.Request().Context(), req)
+    if err != nil {
+        return err
     }
 
-    return ctx.JSON(http.StatusCreated, schemas.NewResponse(user, http.StatusCreated))
+    return ctx.JSON(http.StatusCreated, schemas.NewResponse(user))
 }
 ```
 
@@ -794,6 +792,6 @@ wg.Wait()
 ---
 
 **Document Version**: 2.0.0
-**Last Reviewed**: 2026-02-09
-**Next Review**: 2026-03-09
+**Last Reviewed**: 2026-06-28
+**Next Review**: 2026-07-28
 **Maintainer**: Development Team

@@ -1,5 +1,7 @@
 package apperrors
 
+import "errors"
+
 // FieldError describes a single field-level validation failure.
 type FieldError struct {
 	Property string `json:"property" example:"email"`
@@ -38,27 +40,33 @@ func (c Code) ClientMessage() string {
 	}
 }
 
-// Resolve maps an error to an HTTP status and a standard Response body.
-// status defaults to 500 when the error carries no apperrors Code.
-//
-// For CodeInvalid the caller may enrich body.Errors with field-level details
-// (e.g. from a validator.ValidationError) and override body.Msg accordingly.
-func Resolve(err error, path, requestID string) (status int, body Response) {
-	code, ok := GetCode(err)
-	if !ok {
-		return 500, Response{
-			Msg:       "Internal Server Error",
-			Error:     "Internal Server Error",
-			Path:      path,
-			RequestID: requestID,
-		}
-	}
-
-	msg := code.ClientMessage()
-	return code.HTTPStatus(), Response{
-		Msg:       msg,
-		Error:     msg,
+// NewBody builds the standard JSON error body.
+func NewBody(message, path, requestID string) Response {
+	return Response{
+		Msg:       message,
+		Error:     message,
 		Path:      path,
 		RequestID: requestID,
 	}
+}
+
+// Resolve maps an error to an HTTP status and a standard Response body.
+// status defaults to 500 when the error carries no apperrors Code.
+func Resolve(err error, path, requestID string) (status int, body Response) {
+	code, ok := GetCode(err)
+	if !ok {
+		return 500, NewBody("Internal Server Error", path, requestID)
+	}
+
+	msg := code.ClientMessage()
+	body = NewBody(msg, path, requestID)
+
+	var appErr *Error
+	if code == CodeInvalid && errors.As(err, &appErr) && len(appErr.Errors) > 0 {
+		body.Msg = appErr.Errors[0].Msg
+		body.Error = appErr.Errors[0].Msg
+		body.Errors = appErr.Errors
+	}
+
+	return code.HTTPStatus(), body
 }

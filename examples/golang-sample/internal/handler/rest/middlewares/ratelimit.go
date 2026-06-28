@@ -2,10 +2,10 @@ package middlewares
 
 import (
 	"context"
-	"net/http"
 	"sync"
 	"time"
 
+	apperrors "github.com/haipham22/golang-sample/internal/errors"
 	"github.com/labstack/echo/v5"
 )
 
@@ -137,10 +137,7 @@ func RateLimitWithConfig(ctx context.Context, config RateLimiterConfig) echo.Mid
 
 			// Check if request is allowed
 			if !limiter.allow() {
-				return c.JSON(http.StatusTooManyRequests, map[string]string{
-					"error": "Too many requests",
-					"msg":   "Rate limit exceeded. Please try again later.",
-				})
+				return apperrors.RateLimit("Rate limit exceeded. Please try again later.")
 			}
 
 			return next(c)

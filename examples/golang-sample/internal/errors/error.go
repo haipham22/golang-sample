@@ -12,6 +12,8 @@ type Error struct {
 	Code Code
 	// Err is the wrapped underlying error; may be nil for sentinel errors.
 	Err error
+	// Errors carries optional field-level validation detail.
+	Errors []FieldError
 	// message is an optional human-readable detail. When empty, Error() falls
 	// back to the wrapped error or the code itself.
 	message string
@@ -64,7 +66,12 @@ func NewCode(code Code, message string) error {
 
 // Wrap creates an *Error that wraps an underlying error with a code.
 func Wrap(code Code, err error) *Error {
-	return &Error{Code: code, Err: err}
+	wrapped := &Error{Code: code, Err: err}
+	var inner *Error
+	if stderrors.As(err, &inner) {
+		wrapped.Errors = inner.Errors
+	}
+	return wrapped
 }
 
 // WrapCode is the govern/errors-compatible wrapper returning an error interface.

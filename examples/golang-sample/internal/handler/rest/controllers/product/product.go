@@ -42,7 +42,7 @@ func (h *Controller) PostProduct(c *echo.Context) error {
 		return apperrors.WrapCode(apperrors.CodeInvalid, err)
 	}
 	if err := c.Validate(req); err != nil {
-		return apperrors.WrapCode(apperrors.CodeInvalid, err)
+		return err
 	}
 
 	created, err := h.service.Create(c.Request().Context(), productservice.CreateRequest{

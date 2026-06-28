@@ -12,6 +12,7 @@ import (
 	"fmt"
 
 	governhttp "github.com/haipham22/govern/http"
+	"go.uber.org/zap"
 
 	"github.com/haipham22/golang-sample/pkg/config"
 )
@@ -24,8 +25,20 @@ type Config struct {
 	AppConfig *config.EnvConfigMap
 }
 
+// httpServerFactory builds the HTTP server from a logger, port, and config.
+// It is a package-level indirection so tests can exercise New() end-to-end
+// without a live Postgres (the default wiring, NewHTTPServer, requires one).
+// Production code leaves this at its zero value, which delegates to
+// NewHTTPServer — the former hard-coded call.
+//
+// ponytail: a sync.Once-based override would also work; the indirection is the
+// simplest seam that preserves the public New signature.
+var httpServerFactory = func(log *zap.SugaredLogger, port int64, cfg *config.EnvConfigMap) (governhttp.Server, func(), error) {
+	return NewHTTPServer(log, port, cfg)
+}
+
 // New assembles the HTTP server: it builds the logger and delegates HTTP/DB/
-// service wiring to internal/handler/rest.New via NewHTTPServer. The returned
+// service wiring to httpServerFactory (NewHTTPServer by default). The returned
 // cleanup closes the DB and syncs the logger; it must be called on shutdown
 // (typically via defer in cmd).
 //
@@ -42,7 +55,7 @@ func New(cfg Config) (governhttp.Server, func(), error) {
 		return nil, nil, fmt.Errorf("bootstrap: %w", err)
 	}
 
-	server, httpCleanup, err := NewHTTPServer(log, cfg.Port, cfg.AppConfig)
+	server, httpCleanup, err := httpServerFactory(log, cfg.Port, cfg.AppConfig)
 	if err != nil {
 		logCleanup()
 		return nil, nil, fmt.Errorf("bootstrap: %w", err)
