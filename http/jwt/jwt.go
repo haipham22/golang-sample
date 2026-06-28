@@ -99,7 +99,7 @@ func ValidateToken(tokenString string, config *Config) (*Claims, error) {
 		return nil, err
 	}
 
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (any, error) {
 		// Validate signing method
 		if token.Method != config.SigningMethod {
 			return nil, ErrUnexpectedSigningMethod

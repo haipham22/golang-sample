@@ -45,7 +45,7 @@ func TestCleanup(t *testing.T) {
 func TestDefaults(t *testing.T) {
 	tests := []struct {
 		name         string
-		defaultValue interface{}
+		defaultValue any
 		field        string
 	}{
 		{"DefaultPoolSize", 100, "PoolSize"},

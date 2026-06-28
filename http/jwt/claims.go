@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"errors"
+	"slices"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -25,20 +26,10 @@ func (c *Claims) Validate() error {
 
 // HasRole checks if user has role.
 func (c *Claims) HasRole(role string) bool {
-	for _, r := range c.Roles {
-		if r == role {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(c.Roles, role)
 }
 
 // HasAnyRole checks if user has any of the specified roles.
 func (c *Claims) HasAnyRole(roles ...string) bool {
-	for _, role := range roles {
-		if c.HasRole(role) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(roles, c.HasRole)
 }

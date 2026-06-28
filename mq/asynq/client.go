@@ -165,7 +165,7 @@ func (c *Client) Close() error {
 //
 //	payload := map[string]interface{}{"user_id": 42, "template": "welcome"}
 //	task := asynq.NewTask("email:send", payload)
-func NewTask(typ string, payload interface{}) (*asynq.Task, error) {
+func NewTask(typ string, payload any) (*asynq.Task, error) {
 	var data []byte
 	var err error
 

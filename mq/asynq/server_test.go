@@ -161,7 +161,7 @@ func TestServer_ConcurrentAccess(t *testing.T) {
 
 		// Test concurrent access to state-checking methods
 		done := make(chan bool, 10)
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			go func() {
 				_ = server.IsStarted()
 				_ = server.IsShutdown()
@@ -169,7 +169,7 @@ func TestServer_ConcurrentAccess(t *testing.T) {
 			}()
 		}
 
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			<-done
 		}
 	})
@@ -188,14 +188,14 @@ func TestServer_SetLoggerConcurrent(t *testing.T) {
 
 		// Test concurrent SetLogger calls
 		done := make(chan bool, 10)
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			go func() {
 				server.SetLogger(logger)
 				done <- true
 			}()
 		}
 
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			<-done
 		}
 	})

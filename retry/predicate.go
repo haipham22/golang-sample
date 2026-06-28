@@ -3,6 +3,7 @@ package retry
 import (
 	"context"
 	"errors"
+	"slices"
 )
 
 // IsRetryable returns true if the error should trigger a retry.
@@ -21,12 +22,7 @@ func NeverRetry(error) bool {
 // RetrySpecificErrors returns a function that checks if error matches.
 func RetrySpecificErrors(errs ...error) IsRetryable {
 	return func(err error) bool {
-		for _, e := range errs {
-			if err == e {
-				return true
-			}
-		}
-		return false
+		return slices.Contains(errs, err)
 	}
 }
 

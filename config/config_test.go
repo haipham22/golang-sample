@@ -325,13 +325,13 @@ func TestLoadRace(t *testing.T) {
 
 	done := make(chan struct{})
 	go func() {
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			_, _ = Load[testConfig](yamlPath)
 		}
 		close(done)
 	}()
 
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		cfg, err := Load[testConfig](yamlPath)
 		require.NoError(t, err)
 		assert.Equal(t, "debug", cfg.Test.Value)

@@ -212,7 +212,7 @@ func TestTaskMux_Concurrent(t *testing.T) {
 		mux.Handle("test", handler)
 
 		done := make(chan bool, 10)
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			go func() {
 				task := asynq.NewTask("test", nil)
 				_ = mux.HandleTask(context.Background(), task)
@@ -220,7 +220,7 @@ func TestTaskMux_Concurrent(t *testing.T) {
 			}()
 		}
 
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			<-done
 		}
 

@@ -3,7 +3,7 @@ package metrics
 import "testing"
 
 // Test helpers shared across test files
-func requireNotNil(t *testing.T, v interface{}) {
+func requireNotNil(t *testing.T, v any) {
 	t.Helper()
 	if v == nil {
 		t.Fatal("expected non-nil value")

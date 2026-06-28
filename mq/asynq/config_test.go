@@ -52,8 +52,8 @@ func TestDefaultEnqueueConfig(t *testing.T) {
 func TestConstants(t *testing.T) {
 	tests := []struct {
 		name     string
-		value    interface{}
-		expected interface{}
+		value    any
+		expected any
 	}{
 		{"DefaultConcurrency", DefaultConcurrency, 10},
 		{"DefaultQueue", DefaultQueue, "default"},

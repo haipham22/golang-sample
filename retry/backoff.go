@@ -136,10 +136,7 @@ func NewLinearBackoff(opts ...LinearOption) *linearBackoff {
 
 // Delay calculates the delay for the given attempt.
 func (l *linearBackoff) Delay(attempt int) time.Duration {
-	delay := l.baseDelay + time.Duration(attempt)*l.increment
-	if delay > l.maxDelay {
-		delay = l.maxDelay
-	}
+	delay := min(l.baseDelay+time.Duration(attempt)*l.increment, l.maxDelay)
 	return delay
 }
 

@@ -20,8 +20,7 @@ func TestNewManager(t *testing.T) {
 }
 
 func TestNewManagerWithParent(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	m := NewManager(ctx)
 	if m == nil {

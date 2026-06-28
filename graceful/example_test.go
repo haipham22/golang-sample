@@ -53,7 +53,7 @@ func ExampleWorkerGroup() {
 	wg := NewWorkerGroup(10) // Max 10 concurrent jobs
 
 	m.Go(func(ctx context.Context) error {
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			if !wg.TryGo(ctx, func(ctx context.Context) {
 				// Process job
 			}) {

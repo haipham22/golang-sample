@@ -58,7 +58,7 @@ func NewBaseHandler() *BaseHandler {
 
 // ParsePayload unmarshals task payload into target.
 // Returns error if payload cannot be unmarshaled.
-func (h *BaseHandler) ParsePayload(task *asynq.Task, target interface{}) error {
+func (h *BaseHandler) ParsePayload(task *asynq.Task, target any) error {
 	if err := sonic.Unmarshal(task.Payload(), target); err != nil {
 		return fmt.Errorf("failed to parse payload for task %s: %w", task.Type(), err)
 	}
@@ -71,7 +71,7 @@ func (h *BaseHandler) ParsePayload(task *asynq.Task, target interface{}) error {
 //	type EmailPayload struct { UserID int `json:"user_id"` }
 //	var payload EmailPayload
 //	if err := asynq.ParsePayload(t, &payload); err != nil { return err }
-func ParsePayload(task *asynq.Task, target interface{}) error {
+func ParsePayload(task *asynq.Task, target any) error {
 	h := &BaseHandler{}
 	return h.ParsePayload(task, target)
 }

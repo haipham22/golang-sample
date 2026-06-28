@@ -151,4 +151,4 @@ type MiddlewareOption interface {
 
 // MiddlewareFunc represents asynq middleware function.
 // Type alias for compatibility with hibiken/asynq middleware.
-type MiddlewareFunc = interface{}
+type MiddlewareFunc = any

@@ -36,7 +36,7 @@ func TestRegistry_ConcurrentAccess(t *testing.T) {
 
 	// Concurrent registration
 	done := make(chan bool)
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		go func(n int) {
 			r.Register(string(rune('a'+n)), func(ctx context.Context) error {
 				return nil
@@ -45,19 +45,19 @@ func TestRegistry_ConcurrentAccess(t *testing.T) {
 		}(i)
 	}
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		<-done
 	}
 
 	// Concurrent execution
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		go func() {
 			r.Run(context.Background())
 			done <- true
 		}()
 	}
 
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		<-done
 	}
 }

@@ -126,9 +126,9 @@ func TestNewWithOptions(t *testing.T) {
 func TestHelpers(t *testing.T) {
 	tests := []struct {
 		name   string
-		logFn  func(...interface{})
-		logFfn func(string, ...interface{})
-		logWfn func(string, ...interface{})
+		logFn  func(...any)
+		logFfn func(string, ...any)
+		logWfn func(string, ...any)
 	}{
 		{"Debug", Debug, Debugf, Debugw},
 		{"Info", Info, Infof, Infow},
@@ -243,17 +243,17 @@ func TestConcurrentLogging(t *testing.T) {
 
 		done := make(chan bool, goroutines)
 
-		for i := 0; i < goroutines; i++ {
+		for i := range goroutines {
 			go func(id int) {
 				defer func() { done <- true }()
-				for j := 0; j < messagesPerGoroutine; j++ {
+				for j := range messagesPerGoroutine {
 					logger.Infof("goroutine %d message %d", id, j)
 				}
 			}(i)
 		}
 
 		// Wait for all goroutines
-		for i := 0; i < goroutines; i++ {
+		for range goroutines {
 			<-done
 		}
 
@@ -267,7 +267,7 @@ func TestConcurrentLogging(t *testing.T) {
 
 		done := make(chan bool, goroutines)
 
-		for i := 0; i < goroutines; i++ {
+		for i := range goroutines {
 			go func(id int) {
 				defer func() { done <- true }()
 				Infof("concurrent info %d", id)
@@ -277,7 +277,7 @@ func TestConcurrentLogging(t *testing.T) {
 			}(i)
 		}
 
-		for i := 0; i < goroutines; i++ {
+		for range goroutines {
 			<-done
 		}
 

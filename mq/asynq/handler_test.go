@@ -65,13 +65,13 @@ func TestBaseHandler(t *testing.T) {
 	t.Run("parse valid payload", func(t *testing.T) {
 		h := NewBaseHandler()
 
-		payload := map[string]interface{}{"key": "value"}
+		payload := map[string]any{"key": "value"}
 		data, err := sonic.Marshal(payload)
 		require.NoError(t, err)
 
 		task := asynq.NewTask("test", data)
 
-		var result map[string]interface{}
+		var result map[string]any
 		err = h.ParsePayload(task, &result)
 		assert.NoError(t, err)
 		assert.Equal(t, "value", result["key"])
@@ -82,7 +82,7 @@ func TestBaseHandler(t *testing.T) {
 
 		task := asynq.NewTask("test", []byte("invalid json"))
 
-		var result map[string]interface{}
+		var result map[string]any
 		err := h.ParsePayload(task, &result)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to parse payload")

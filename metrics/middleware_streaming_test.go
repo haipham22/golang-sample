@@ -14,7 +14,7 @@ func TestHTTPMiddlewareStreaming(t *testing.T) {
 	reg := New()
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			_, _ = w.Write([]byte("chunk"))
 		}
 	})

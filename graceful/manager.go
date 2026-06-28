@@ -88,9 +88,7 @@ func (m *Manager) InitiateShutdown() {
 // Go runs fn in a managed goroutine.
 // fn MUST respect ctx.Done().
 func (m *Manager) Go(fn func(ctx context.Context) error) {
-	m.wg.Add(1)
-	go func() {
-		defer m.wg.Done()
+	m.wg.Go(func() {
 
 		if err := fn(m.ctx); err != nil && !errors.Is(err, context.Canceled) {
 			m.errOnce.Do(func() {
@@ -101,7 +99,7 @@ func (m *Manager) Go(fn func(ctx context.Context) error) {
 				m.InitiateShutdown()
 			}
 		}
-	}()
+	})
 }
 
 // Defer registers a cleanup hook. Runs in LIFO order.

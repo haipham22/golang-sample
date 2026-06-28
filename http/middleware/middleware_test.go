@@ -44,12 +44,12 @@ func createTestLogger(t *testing.T) (*zap.SugaredLogger, *bytes.Buffer) {
 }
 
 // parseLogEntries parses JSON log entries from buffer.
-func parseLogEntries(t *testing.T, buf *bytes.Buffer) []map[string]interface{} {
+func parseLogEntries(t *testing.T, buf *bytes.Buffer) []map[string]any {
 	t.Helper()
-	var entries []map[string]interface{}
+	var entries []map[string]any
 	decoder := json.NewDecoder(buf)
 	for decoder.More() {
-		var entry map[string]interface{}
+		var entry map[string]any
 		if err := decoder.Decode(&entry); err != nil {
 			t.Fatalf("failed to decode log entry: %v", err)
 		}
@@ -86,14 +86,14 @@ func TestLogging(t *testing.T) {
 		request        *http.Request
 		expectedStatus int
 		handler        http.HandlerFunc
-		validateLogs   func(*testing.T, []map[string]interface{})
+		validateLogs   func(*testing.T, []map[string]any)
 	}{
 		{
 			name:           "logs incoming request",
 			request:        createTestRequest(t, http.MethodGet, "/test", nil),
 			expectedStatus: http.StatusOK,
 			handler:        handler,
-			validateLogs: func(t *testing.T, logs []map[string]interface{}) {
+			validateLogs: func(t *testing.T, logs []map[string]any) {
 				t.Helper()
 				assert.GreaterOrEqual(t, len(logs), 1, "should have request log")
 				reqLog := logs[0]
@@ -107,7 +107,7 @@ func TestLogging(t *testing.T) {
 			request:        createTestRequest(t, http.MethodGet, "/test?foo=bar&baz=qux", nil),
 			expectedStatus: http.StatusOK,
 			handler:        handler,
-			validateLogs: func(t *testing.T, logs []map[string]interface{}) {
+			validateLogs: func(t *testing.T, logs []map[string]any) {
 				t.Helper()
 				assert.GreaterOrEqual(t, len(logs), 1)
 				assert.Equal(t, "foo=bar&baz=qux", logs[0]["query"])
@@ -120,10 +120,10 @@ func TestLogging(t *testing.T) {
 			handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusCreated)
 			}),
-			validateLogs: func(t *testing.T, logs []map[string]interface{}) {
+			validateLogs: func(t *testing.T, logs []map[string]any) {
 				t.Helper()
 				// Find response log
-				var respLog map[string]interface{}
+				var respLog map[string]any
 				for _, log := range logs {
 					if log["msg"] == "Request completed" {
 						respLog = log
@@ -142,7 +142,7 @@ func TestLogging(t *testing.T) {
 			}),
 			expectedStatus: http.StatusOK,
 			handler:        handler,
-			validateLogs: func(t *testing.T, logs []map[string]interface{}) {
+			validateLogs: func(t *testing.T, logs []map[string]any) {
 				t.Helper()
 				assert.GreaterOrEqual(t, len(logs), 1)
 				assert.Equal(t, "test-request-123", logs[0]["request_id"])
@@ -153,7 +153,7 @@ func TestLogging(t *testing.T) {
 			request:        createTestRequest(t, http.MethodGet, "/test", nil),
 			expectedStatus: http.StatusOK,
 			handler:        handler,
-			validateLogs: func(t *testing.T, logs []map[string]interface{}) {
+			validateLogs: func(t *testing.T, logs []map[string]any) {
 				t.Helper()
 				assert.GreaterOrEqual(t, len(logs), 1)
 				reqID := logs[0]["request_id"]
@@ -184,7 +184,7 @@ func TestLogging_ResponseWriter(t *testing.T) {
 		name                 string
 		handler              http.HandlerFunc
 		expectedBytes        int
-		validateBytesWritten func(*testing.T, []map[string]interface{})
+		validateBytesWritten func(*testing.T, []map[string]any)
 	}{
 		{
 			name: "tracks bytes written",
@@ -192,7 +192,7 @@ func TestLogging_ResponseWriter(t *testing.T) {
 				_, _ = w.Write([]byte("hello world"))
 			},
 			expectedBytes: 11,
-			validateBytesWritten: func(t *testing.T, logs []map[string]interface{}) {
+			validateBytesWritten: func(t *testing.T, logs []map[string]any) {
 				t.Helper()
 				for _, log := range logs {
 					if log["msg"] == "Request completed" {
@@ -241,7 +241,7 @@ func TestLogging_ContextRequestID(t *testing.T) {
 	logger, _ := createTestLogger(t)
 	mw := Logging(logger)
 
-	var capturedReqID interface{}
+	var capturedReqID any
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		capturedReqID = r.Context().Value(RequestIDKeyVal)
 		w.WriteHeader(http.StatusOK)
@@ -250,14 +250,14 @@ func TestLogging_ContextRequestID(t *testing.T) {
 	tests := []struct {
 		name       string
 		request    *http.Request
-		validateID func(*testing.T, interface{})
+		validateID func(*testing.T, any)
 	}{
 		{
 			name: "sets request ID in context from header",
 			request: createTestRequest(t, http.MethodGet, "/", map[string]string{
 				"X-Request-ID": "custom-id-123",
 			}),
-			validateID: func(t *testing.T, reqID interface{}) {
+			validateID: func(t *testing.T, reqID any) {
 				t.Helper()
 				assert.Equal(t, "custom-id-123", reqID)
 			},
@@ -265,7 +265,7 @@ func TestLogging_ContextRequestID(t *testing.T) {
 		{
 			name:    "generates and sets request ID in context",
 			request: createTestRequest(t, http.MethodGet, "/", nil),
-			validateID: func(t *testing.T, reqID interface{}) {
+			validateID: func(t *testing.T, reqID any) {
 				t.Helper()
 				assert.NotNil(t, reqID)
 				assert.NotEmpty(t, reqID)
@@ -340,7 +340,7 @@ func TestRecovery(t *testing.T) {
 		handler        http.HandlerFunc
 		expectedStatus int
 		expectedBody   string
-		validatePanic  func(*testing.T, []map[string]interface{})
+		validatePanic  func(*testing.T, []map[string]any)
 	}{
 		{
 			name: "recovers from panic",
@@ -349,7 +349,7 @@ func TestRecovery(t *testing.T) {
 			},
 			expectedStatus: http.StatusInternalServerError,
 			expectedBody:   "Internal Server Error",
-			validatePanic: func(t *testing.T, logs []map[string]interface{}) {
+			validatePanic: func(t *testing.T, logs []map[string]any) {
 				t.Helper()
 				assert.GreaterOrEqual(t, len(logs), 1)
 				assert.Equal(t, "Recovered from panic", logs[0]["msg"])
@@ -363,7 +363,7 @@ func TestRecovery(t *testing.T) {
 				panic("emergency")
 			},
 			expectedStatus: http.StatusInternalServerError,
-			validatePanic: func(t *testing.T, logs []map[string]interface{}) {
+			validatePanic: func(t *testing.T, logs []map[string]any) {
 				t.Helper()
 				assert.GreaterOrEqual(t, len(logs), 1)
 				ctx := logs[0]
@@ -387,7 +387,7 @@ func TestRecovery(t *testing.T) {
 				panic(123) // int panic
 			},
 			expectedStatus: http.StatusInternalServerError,
-			validatePanic: func(t *testing.T, logs []map[string]interface{}) {
+			validatePanic: func(t *testing.T, logs []map[string]any) {
 				t.Helper()
 				assert.GreaterOrEqual(t, len(logs), 1)
 				assert.Equal(t, float64(123), logs[0]["error"])
@@ -424,14 +424,14 @@ func TestRecovery_WithRequestID(t *testing.T) {
 	tests := []struct {
 		name     string
 		request  *http.Request
-		validate func(*testing.T, []map[string]interface{})
+		validate func(*testing.T, []map[string]any)
 	}{
 		{
 			name: "logs request ID from context",
 			request: createTestRequest(t, http.MethodGet, "/", map[string]string{
 				"X-Request-ID": "panic-123",
 			}),
-			validate: func(t *testing.T, logs []map[string]interface{}) {
+			validate: func(t *testing.T, logs []map[string]any) {
 				t.Helper()
 				assert.GreaterOrEqual(t, len(logs), 1)
 				assert.Equal(t, "panic-123", logs[0]["request_id"])
@@ -495,7 +495,7 @@ func TestRequestID(t *testing.T) {
 			request: createTestRequest(t, http.MethodGet, "/", nil),
 			validateCtx: func(t *testing.T, req *http.Request) {
 				t.Helper()
-				var capturedID interface{}
+				var capturedID any
 				handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					capturedID = r.Context().Value(RequestIDKeyVal)
 					w.WriteHeader(http.StatusOK)
@@ -517,7 +517,7 @@ func TestRequestID(t *testing.T) {
 			}),
 			validateCtx: func(t *testing.T, req *http.Request) {
 				t.Helper()
-				var capturedID interface{}
+				var capturedID any
 				handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					capturedID = r.Context().Value(RequestIDKeyVal)
 					w.WriteHeader(http.StatusOK)
@@ -557,7 +557,7 @@ func TestRequestID(t *testing.T) {
 func TestRequestID_Consistency(t *testing.T) {
 	mw := RequestID()
 
-	var reqIDFromContext interface{}
+	var reqIDFromContext any
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		reqIDFromContext = r.Context().Value(RequestIDKeyVal)
 		w.WriteHeader(http.StatusOK)

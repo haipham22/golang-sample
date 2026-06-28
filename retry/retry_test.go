@@ -733,8 +733,8 @@ func TestDefaultPolicy(t *testing.T) {
 	tests := []struct {
 		name      string
 		field     string
-		expected  interface{}
-		actual    interface{}
+		expected  any
+		actual    any
 		checkType bool
 		typeName  string
 	}{

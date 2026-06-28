@@ -34,7 +34,7 @@ func TrimStrings(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		// Parse JSON using sonic for faster performance
-		var data map[string]interface{}
+		var data map[string]any
 		if err := sonic.Unmarshal(bodyBytes, &data); err != nil {
 			// Invalid JSON - let validation handler deal with it
 			c.Request().Body = io.NopCloser(bytes.NewReader(bodyBytes))
@@ -60,9 +60,9 @@ func TrimStrings(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 // trimStringsRecursive recursively trims all string values in the data structure
-func trimStringsRecursive(v interface{}) {
+func trimStringsRecursive(v any) {
 	switch val := v.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		for k, v := range val {
 			if str, ok := v.(string); ok {
 				val[k] = trimString(str)
@@ -70,7 +70,7 @@ func trimStringsRecursive(v interface{}) {
 				trimStringsRecursive(v)
 			}
 		}
-	case []interface{}:
+	case []any:
 		for i, item := range val {
 			if str, ok := item.(string); ok {
 				val[i] = trimString(str)

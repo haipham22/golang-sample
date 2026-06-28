@@ -13,7 +13,7 @@ func New(message string) error {
 }
 
 // Errorf formats according to a format specifier and returns the error.
-func Errorf(format string, args ...interface{}) error {
+func Errorf(format string, args ...any) error {
 	return pkgErrors.Errorf(format, args...)
 }
 
@@ -23,7 +23,7 @@ func Is(err, target error) bool {
 }
 
 // As finds the first error in err's chain that matches target.
-func As(err error, target interface{}) bool {
+func As(err error, target any) bool {
 	return pkgErrors.As(err, target)
 }
 

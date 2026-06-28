@@ -61,13 +61,13 @@ func TestNewTask(t *testing.T) {
 	tests := []struct {
 		name    string
 		typ     string
-		payload interface{}
+		payload any
 		wantErr bool
 	}{
 		{
 			name:    "valid task with payload",
 			typ:     "email:send",
-			payload: map[string]interface{}{"user_id": 42},
+			payload: map[string]any{"user_id": 42},
 			wantErr: false,
 		},
 		{
@@ -102,7 +102,7 @@ func TestNewTask(t *testing.T) {
 				assert.Equal(t, tt.typ, task.Type())
 
 				if tt.payload != nil {
-					var payload map[string]interface{}
+					var payload map[string]any
 					err := json.Unmarshal(task.Payload(), &payload)
 					assert.NoError(t, err)
 				}
@@ -343,7 +343,7 @@ func TestClient_ConcurrentEnqueue(t *testing.T) {
 		const goroutines = 50
 		done := make(chan bool, goroutines)
 
-		for i := 0; i < goroutines; i++ {
+		for i := range goroutines {
 			go func(id int) {
 				defer func() { done <- true }()
 				task, _ := NewTask("test:concurrent", map[string]int{"id": id})
@@ -351,7 +351,7 @@ func TestClient_ConcurrentEnqueue(t *testing.T) {
 			}(i)
 		}
 
-		for i := 0; i < goroutines; i++ {
+		for range goroutines {
 			<-done
 		}
 	})

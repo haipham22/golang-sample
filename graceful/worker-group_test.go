@@ -26,8 +26,7 @@ func TestNewWorkerGroupZeroConcurrency(t *testing.T) {
 
 func TestWorkerGroupTryGo(t *testing.T) {
 	wg := NewWorkerGroup(2)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	done := make(chan struct{})
 
@@ -57,14 +56,13 @@ func TestWorkerGroupTryGoCanceled(t *testing.T) {
 
 func TestWorkerGroupConcurrency(t *testing.T) {
 	wg := NewWorkerGroup(2)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	var count atomic.Int64
 	var maxCount atomic.Int64
 
 	// Start 5 jobs, but max concurrency is 2
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		wg.TryGo(ctx, func(ctx context.Context) {
 			c := count.Add(1)
 			for {
@@ -87,7 +85,7 @@ func TestWorkerGroupDrain(t *testing.T) {
 	wg := NewWorkerGroup(2)
 	ctx, cancel := context.WithCancel(context.Background())
 
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		wg.TryGo(ctx, func(ctx context.Context) {
 			time.Sleep(10 * time.Millisecond)
 		})

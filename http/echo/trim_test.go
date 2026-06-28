@@ -18,7 +18,7 @@ func TestTrimStrings_Integration(t *testing.T) {
 		e := echo.New()
 
 		// Request with whitespace in fields
-		reqBody := map[string]interface{}{
+		reqBody := map[string]any{
 			"username": "  testuser  ",
 			"email":    "  test@example.com  ",
 			"password": "  password123  ",
@@ -31,7 +31,7 @@ func TestTrimStrings_Integration(t *testing.T) {
 		c := e.NewContext(req, rec)
 
 		// Handler to verify trimmed data
-		var receivedData map[string]interface{}
+		var receivedData map[string]any
 		handler := func(c echo.Context) error {
 			err := c.Bind(&receivedData)
 			require.NoError(t, err)
@@ -50,8 +50,8 @@ func TestTrimStrings_Integration(t *testing.T) {
 	t.Run("handles nested objects", func(t *testing.T) {
 		e := echo.New()
 
-		reqBody := map[string]interface{}{
-			"user": map[string]interface{}{
+		reqBody := map[string]any{
+			"user": map[string]any{
 				"name":  "  John Doe  ",
 				"email": "  john@example.com  ",
 			},
@@ -63,7 +63,7 @@ func TestTrimStrings_Integration(t *testing.T) {
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)
 
-		var receivedData map[string]interface{}
+		var receivedData map[string]any
 		handler := func(c echo.Context) error {
 			err := c.Bind(&receivedData)
 			require.NoError(t, err)
@@ -73,7 +73,7 @@ func TestTrimStrings_Integration(t *testing.T) {
 		err := TrimStrings(handler)(c)
 
 		assert.NoError(t, err)
-		user := receivedData["user"].(map[string]interface{})
+		user := receivedData["user"].(map[string]any)
 		assert.Equal(t, "John Doe", user["name"])
 		assert.Equal(t, "john@example.com", user["email"])
 	})
@@ -81,8 +81,8 @@ func TestTrimStrings_Integration(t *testing.T) {
 	t.Run("handles arrays", func(t *testing.T) {
 		e := echo.New()
 
-		reqBody := map[string]interface{}{
-			"tags": []interface{}{"  tag1  ", "  tag2  ", "  tag3  "},
+		reqBody := map[string]any{
+			"tags": []any{"  tag1  ", "  tag2  ", "  tag3  "},
 		}
 		bodyBytes, _ := sonic.Marshal(reqBody)
 
@@ -91,7 +91,7 @@ func TestTrimStrings_Integration(t *testing.T) {
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)
 
-		var receivedData map[string]interface{}
+		var receivedData map[string]any
 		handler := func(c echo.Context) error {
 			err := c.Bind(&receivedData)
 			require.NoError(t, err)
@@ -101,7 +101,7 @@ func TestTrimStrings_Integration(t *testing.T) {
 		err := TrimStrings(handler)(c)
 
 		assert.NoError(t, err)
-		tags := receivedData["tags"].([]interface{})
+		tags := receivedData["tags"].([]any)
 		assert.Equal(t, "tag1", tags[0])
 		assert.Equal(t, "tag2", tags[1])
 		assert.Equal(t, "tag3", tags[2])

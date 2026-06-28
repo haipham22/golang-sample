@@ -85,14 +85,14 @@ func swaggerJSONHandler(settings *swaggerSettings) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// Try to serve from docs package if available
 		// This will return 404 if docs package doesn't exist
-		return c.JSON(http.StatusOK, map[string]interface{}{
+		return c.JSON(http.StatusOK, map[string]any{
 			"swagger": "2.0",
-			"info": map[string]interface{}{
+			"info": map[string]any{
 				"title":       settings.info.Title,
 				"description": settings.info.Description,
 				"version":     settings.info.Version,
 			},
-			"paths": map[string]interface{}{},
+			"paths": map[string]any{},
 		})
 	}
 }
