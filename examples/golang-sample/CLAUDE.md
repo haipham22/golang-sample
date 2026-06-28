@@ -51,24 +51,28 @@ HTTP Request → Handler → Controller → Service → Domain Model ← Storage
 
 | Layer        | Location                                 | Responsibility                          |
 | ------------ | ---------------------------------------- | --------------------------------------- |
-| Entry point  | `main.go` + `cmd/` (Cobra)               | Bootstrap, signal handling              |
+| Entry point  | `main.go` + `cmd/` (Cobra: serverd/grpcd/workerd) | Bootstrap, signal handling       |
+| Bootstrap    | `internal/bootstrap/`                    | Composition root (manual DI)            |
 | HTTP Handler | `internal/handler/rest/`                 | Echo binding, routing, response mapping |
 | Controller   | `internal/handler/rest/controllers/`     | Request orchestration, error mapping    |
-| Service      | `internal/service/auth/`                 | Business logic, JWT, password hashing   |
-| Storage      | `internal/storage/user/`                 | Data access interface + GORM conversion |
-| Model        | `internal/model/`                        | Pure domain entities (no externals)     |
+| gRPC/Job/MQ  | `internal/handler/{grpc,job,message}/`   | gRPC server, cron jobs, asynq consumer  |
+| Usecase      | `internal/usecase/{auth,product,user}/`  | Business logic + repository interfaces  |
+| Repository   | `internal/repository/{user,postgres,redis}/` | Data access (GORM/Redis) + interfaces |
+| Domain       | `internal/domain/`                       | Pure domain entities (no externals)     |
 | ORM          | `internal/orm/`                          | GORM entities                           |
 | Schemas      | `internal/schemas/`                      | Request/response DTOs (HTTP boundary)   |
 | Validator    | `internal/validator/`                    | go-playground/validator wrapper         |
 | Errors       | `internal/errors/` (pkg `apperrors`)     | Typed app errors, HTTP status mapping   |
 | Config       | `pkg/config/`, `pkg/postgres/`           | Environment config, DB connection       |
 
-**Dependency Rule:** `handler → service → model ← storage`. No HTTP→ORM or HTTP→Model direct
-dependencies — always convert through schemas at the boundary.
+**Dependency Rule:** `handler → usecase → domain ← repository`. No handler→ORM or handler→domain
+direct dependencies — always convert through schemas at the boundary.
 
 ### Dependency Injection
 
-Manual dependency injection (no code generation) at `internal/handler/rest/di.go`.
+Manual dependency injection (no code generation) in `internal/bootstrap/` (`app.go`).
+`bootstrap.New(cfg)` wires the graph — logger → DB → repositories → usecases → controllers →
+HTTP server — and returns `(governhttp.Server, cleanup, error)`. `cmd/serverd.go` calls it.
 The `New(log, port, appConfig)` constructor wires the graph explicitly:
 `appConfig → db → storage → service → controllers → echo → NewHandler → server`.
 Errors propagate (e.g. `ErrMissingJWTSecret`); the DB cleanup function is returned

@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 
 	apperrors "github.com/haipham22/golang-sample/internal/errors"
 	"github.com/haipham22/golang-sample/internal/schemas"
@@ -36,7 +36,7 @@ func New(service productservice.Service) *Controller {
 //	@Success	201	{object}	schemas.Response[schemas.Product]
 //	@Failure	400	{object}	apperrors.Response
 //	@Router		/api/products [post]
-func (h *Controller) PostProduct(c echo.Context) error {
+func (h *Controller) PostProduct(c *echo.Context) error {
 	var req schemas.ProductCreateRequest
 	if err := c.Bind(&req); err != nil {
 		return apperrors.WrapCode(apperrors.CodeInvalid, err)
@@ -64,7 +64,7 @@ func (h *Controller) PostProduct(c echo.Context) error {
 //	@Success	200	{object}	schemas.Response[schemas.Product]
 //	@Failure	404	{object}	apperrors.Response
 //	@Router		/api/products/{id} [get]
-func (h *Controller) GetProduct(c echo.Context) error {
+func (h *Controller) GetProduct(c *echo.Context) error {
 	id, err := parseID(c)
 	if err != nil {
 		return err
@@ -86,7 +86,7 @@ func (h *Controller) GetProduct(c echo.Context) error {
 //	@Param		offset	query		int	false	"Skip count"
 //	@Success	200	{object}	schemas.Response[[]schemas.Product]
 //	@Router		/api/products [get]
-func (h *Controller) ListProducts(c echo.Context) error {
+func (h *Controller) ListProducts(c *echo.Context) error {
 	var req schemas.ProductListRequest
 	if err := c.Bind(&req); err != nil {
 		return apperrors.WrapCode(apperrors.CodeInvalid, err)
@@ -116,7 +116,7 @@ func (h *Controller) ListProducts(c echo.Context) error {
 //	@Success	204
 //	@Failure	404	{object}	apperrors.Response
 //	@Router		/api/products/{id} [delete]
-func (h *Controller) DeleteProduct(c echo.Context) error {
+func (h *Controller) DeleteProduct(c *echo.Context) error {
 	id, err := parseID(c)
 	if err != nil {
 		return err
@@ -128,7 +128,7 @@ func (h *Controller) DeleteProduct(c echo.Context) error {
 }
 
 // parseID extracts and validates the {id} path parameter as a positive uint.
-func parseID(c echo.Context) (uint, error) {
+func parseID(c *echo.Context) (uint, error) {
 	raw := c.Param("id")
 	id64, err := strconv.ParseUint(raw, 10, 64)
 	if err != nil || id64 == 0 {

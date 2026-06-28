@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -112,6 +112,71 @@ func TestHTTPHandler_WithDatabase(t *testing.T) {
 
 		assert.NotNil(t, handler)
 		assert.Nil(t, handler.db)
+	})
+}
+
+func TestHTTPHandler_Check_DatabaseErrors(t *testing.T) {
+	t.Run("returns degraded when DB() fails", func(t *testing.T) {
+		// Create a closed DB that will fail on DB() call
+		db := mockDB(t)
+		sqlDB, _ := db.DB()
+		sqlDB.Close() // Close the connection
+
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodGet, "/health", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+
+		handler := &Controller{db: db}
+		err := handler.Check(c)
+
+		// Should return error (degraded status)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+
+		body := rec.Body.String()
+		assert.Contains(t, body, `"status":"degraded"`)
+		assert.Contains(t, body, `"database":"error"`)
+	})
+
+	t.Run("returns degraded when Ping() fails", func(t *testing.T) {
+		// Use a mock DB that fails on Ping
+		// Since we can't easily mock Ping(), we'll close the DB which makes Ping fail
+		db := mockDB(t)
+		sqlDB, _ := db.DB()
+		sqlDB.Close() // Closing makes Ping fail
+
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodGet, "/health", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+
+		handler := &Controller{db: db}
+		_ = handler.Check(c)
+
+		// Should return degraded status
+		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+		body := rec.Body.String()
+		assert.Contains(t, body, `"status":"degraded"`)
+		assert.Contains(t, body, `"database":"error"`)
+	})
+
+	t.Run("returns healthy when database is accessible", func(t *testing.T) {
+		db := mockDB(t)
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodGet, "/health", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+
+		handler := &Controller{db: db}
+		err := handler.Check(c)
+
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, rec.Code)
+
+		body := rec.Body.String()
+		assert.Contains(t, body, `"status":"ok"`)
+		assert.Contains(t, body, `"database":"ok"`)
 	})
 }
 

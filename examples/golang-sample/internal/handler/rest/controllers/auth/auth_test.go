@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -28,7 +28,7 @@ func newTestHandler(service *serviceMocks.MockService) *Controller {
 	}
 }
 
-func newEchoContext(method, path string, body any) (echo.Context, *httptest.ResponseRecorder) {
+func newEchoContext(method, path string, body any) (*echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
 	e.Validator = apiValidator.NewCustomValidator()
 

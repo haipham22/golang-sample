@@ -8,8 +8,8 @@ import (
 
 	"github.com/haipham22/golang-sample/pkg/config"
 
-	"github.com/labstack/echo/v4"
-	echomiddleware "github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/echo/v5"
+	echomiddleware "github.com/labstack/echo/v5/middleware"
 	"go.uber.org/zap"
 
 	apperrors "github.com/haipham22/golang-sample/internal/errors"
@@ -37,12 +37,12 @@ func NewHandler(
 
 	e.Validator = apiValidator.NewCustomValidator()
 
-	if debug {
-		e.Debug = true
-	}
+	// Echo v5 removed the Echo.Debug toggle; debug behavior is now controlled
+	// per-middleware (e.g. logger level, error-handler detail). The `debug`
+	// flag still gates Swagger below.
 
 	e.Use(
-		echomiddleware.RemoveTrailingSlashWithConfig(echomiddleware.TrailingSlashConfig{
+		echomiddleware.RemoveTrailingSlashWithConfig(echomiddleware.RemoveTrailingSlashConfig{
 			RedirectCode: http.StatusPermanentRedirect,
 		}),
 		echomiddleware.Recover(),
@@ -81,7 +81,7 @@ func NewHandler(
 // messages, request-ID propagation, and structured logging via the injected
 // logger (replacing the previous global-zap switch handler).
 func makeHTTPErrorHandler(log *zap.SugaredLogger) echo.HTTPErrorHandler {
-	return func(err error, c echo.Context) {
+	return func(c *echo.Context, err error) {
 		path := c.Path()
 		requestID := c.Response().Header().Get(echo.HeaderXRequestID)
 
@@ -89,7 +89,9 @@ func makeHTTPErrorHandler(log *zap.SugaredLogger) echo.HTTPErrorHandler {
 
 		apperrors.LogRequestError(log, err, path, status)
 
-		if !c.Response().Committed {
+		// Echo v5: c.Response() returns a plain http.ResponseWriter; unwrap to
+		// the *echo.Response to read Committed.
+		if r, _ := echo.UnwrapResponse(c.Response()); r == nil || !r.Committed {
 			c.JSON(status, body)
 		}
 	}
@@ -115,8 +117,26 @@ func resolveError(err error, path, requestID string) (int, apperrors.Response) {
 		if he.Code >= 500 {
 			clientMsg = http.StatusText(http.StatusInternalServerError)
 		}
-		msg := fmt.Sprintf("%v", clientMsg)
+		if clientMsg == "" {
+			clientMsg = http.StatusText(he.Code)
+		}
 		return he.Code, apperrors.Response{
+			Msg:       clientMsg,
+			Error:     clientMsg,
+			Path:      path,
+			RequestID: requestID,
+		}
+	}
+
+	// 2b. Echo sentinel errors (ErrNotFound, ErrBadRequest, …) are an unexported
+	// *httpError type that implements HTTPStatusCoder but is not *HTTPError, so
+	// the branch above misses them. echo.StatusCode handles both via errors.As.
+	if code := echo.StatusCode(err); code != 0 {
+		msg := http.StatusText(code)
+		if code >= 500 {
+			msg = http.StatusText(http.StatusInternalServerError)
+		}
+		return code, apperrors.Response{
 			Msg:       msg,
 			Error:     msg,
 			Path:      path,

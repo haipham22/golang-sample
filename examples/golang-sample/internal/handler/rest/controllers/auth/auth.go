@@ -3,7 +3,7 @@ package auth
 import (
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 
 	apperrors "github.com/haipham22/golang-sample/internal/errors"
 
@@ -33,7 +33,7 @@ func New(service authservice.Service) *Controller {
 //	@Param		req	body		schemas.UserRegisterRequest	true	"Register request"
 //	@Success	201			{object}	schemas.Response[schemas.User]
 //	@Router		/api/register [post]
-func (h *Controller) PostRegister(c echo.Context) error {
+func (h *Controller) PostRegister(c *echo.Context) error {
 	var req schemas.UserRegisterRequest
 
 	if err := c.Bind(&req); err != nil {
@@ -70,7 +70,7 @@ func (h *Controller) PostRegister(c echo.Context) error {
 //	@Param		req	body		schemas.LoginRequest	true	"Login request"
 //	@Success	200			{object}	schemas.Response[schemas.JwtResponse]
 //	@Router		/api/login [post]
-func (h *Controller) PostLogin(c echo.Context) error {
+func (h *Controller) PostLogin(c *echo.Context) error {
 	var req schemas.LoginRequest
 
 	if err := c.Bind(&req); err != nil {

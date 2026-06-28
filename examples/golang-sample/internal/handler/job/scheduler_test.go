@@ -47,8 +47,9 @@ func TestScheduler_runCleanup_NoPanic(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(s.Cleanup)
 
-	// runCleanup must be safe with both real and background contexts.
+	// runCleanup must be safe with both real and nil contexts.
 	assert.NotPanics(t, func() { s.runCleanup(context.Background()) })
+	//lint:ignore SA1012 intentionally passing nil to verify nil-context safety
 	assert.NotPanics(t, func() { s.runCleanup(nil) })
 }
 

@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -24,9 +24,9 @@ import (
 
 func newController(svc productservice.Service) *Controller { return &Controller{service: svc} }
 
-// newJSONCtx builds an echo.Context with a JSON body and optional path params
+// newJSONCtx builds an *echo.Context with a JSON body and optional path params
 // supplied as (name, value) pairs.
-func newJSONCtx(method, path string, body any, params ...string) (echo.Context, *httptest.ResponseRecorder) {
+func newJSONCtx(method, path string, body any, params ...string) (*echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
 	e.Validator = apiValidator.NewCustomValidator()
 
@@ -38,10 +38,11 @@ func newJSONCtx(method, path string, body any, params ...string) (echo.Context, 
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
+	pv := make(echo.PathValues, 0, len(params)/2)
 	for i := 0; i+1 < len(params); i += 2 {
-		c.SetParamNames(params[i])
-		c.SetParamValues(params[i+1])
+		pv = append(pv, echo.PathValue{Name: params[i], Value: params[i+1]})
 	}
+	c.SetPathValues(pv)
 	return c, rec
 }
 

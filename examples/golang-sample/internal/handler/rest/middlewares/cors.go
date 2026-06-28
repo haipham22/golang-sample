@@ -1,8 +1,10 @@
 package middlewares
 
 import (
-	"github.com/labstack/echo/v4"
-	echomiddleware "github.com/labstack/echo/v4/middleware"
+	"net/http"
+
+	"github.com/labstack/echo/v5"
+	echomiddleware "github.com/labstack/echo/v5/middleware"
 )
 
 // CORSConfig holds configuration for CORS middleware
@@ -31,13 +33,13 @@ func DefaultCORSConfig() CORSConfig {
 			"http://127.0.0.1:8080",
 		},
 		AllowMethods: []string{
-			echo.GET,
-			echo.POST,
-			echo.PUT,
-			echo.PATCH,
-			echo.DELETE,
-			echo.OPTIONS,
-			echo.HEAD,
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodPatch,
+			http.MethodDelete,
+			http.MethodOptions,
+			http.MethodHead,
 		},
 		AllowHeaders: []string{
 			"Accept",

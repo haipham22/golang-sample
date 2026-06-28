@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // RateLimiterConfig holds configuration for rate limiting
@@ -118,7 +118,7 @@ func RateLimitWithConfig(ctx context.Context, config RateLimiterConfig) echo.Mid
 	}()
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			// Get client IP (use Echo's IPExtractor if configured)
 			ip := c.RealIP()
 			if ip == "" {

@@ -69,7 +69,7 @@ go tool cover -html=coverage.out -o coverage.html
 
 Current coverage:
 - `pkg/utils/password`: **100%** ✅
-- `internal/service/auth`: **83.3%** ✅
+- `internal/usecase/auth`: **83.3%** ✅
 - `internal/handler/rest/controllers/auth`: **80.0%** ✅
 - `internal/handler/rest/controllers/health`: **52.9%** ✅
 - Overall: **~65%**
@@ -106,10 +106,10 @@ func TestHashPassword(t *testing.T) {
 mockery --all
 
 # Generate mocks for specific package
-mockery --dir=./internal/service/auth --all
+mockery --dir=./internal/usecase/auth --all
 
 # Generate mock for specific interface
-mockery --name=Storage --dir=./internal/storage/user
+mockery --name=Storage --dir=./internal/repository/user
 
 # Regenerate mocks after interface changes
 make mocks
@@ -122,12 +122,12 @@ Create `.mockery.yaml` for consistent mock generation:
 ```yaml
 version: 2
 mocking:
-  - dir: internal/service/auth
+  - dir: internal/usecase/auth
     interface: Service
-    output: internal/service/auth/mocks
-  - dir: internal/storage/user
+    output: internal/usecase/auth/mocks
+  - dir: internal/repository/user
     interface: Storage
-    output: internal/storage/user/mocks
+    output: internal/repository/user/mocks
   - dir: internal/handler/rest/controllers/auth
     interface: AuthService
     output: internal/handler/rest/controllers/auth/mocks

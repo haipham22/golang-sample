@@ -3,14 +3,14 @@ package echo
 import (
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // WrapHandler adapts http.Handler to Echo handler func.
 // Use this to reuse standard http handlers with Echo.
 func WrapHandler(h http.Handler) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		h.ServeHTTP(c.Response().Writer, c.Request())
+	return func(c *echo.Context) error {
+		h.ServeHTTP(c.Response(), c.Request())
 		return nil
 	}
 }

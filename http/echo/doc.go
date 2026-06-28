@@ -20,7 +20,7 @@
 //
 // # Getting Current User
 //
-//	func handler(c echo.Context) error {
+//	func handler(c *echo.Context) error {
 //	    claims, ok := echo.GetCurrentUser(c)
 //	    if !ok {
 //	        return echo.NewHTTPError(http.StatusUnauthorized, "not authenticated")
@@ -53,7 +53,7 @@
 //	// @Success 200 {object} User
 //	// @Failure 404 {object} ErrorResponse
 //	// @Router /users/{id} [get]
-//	func getUser(c echo.Context) error {
+//	func getUser(c *echo.Context) error {
 //	    // Handler logic
 //	}
 //

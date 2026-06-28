@@ -8,7 +8,7 @@ import (
 	"github.com/haipham22/golang-sample/internal/handler/rest/controllers/product"
 	"github.com/haipham22/golang-sample/internal/handler/rest/middlewares"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 func initRouter(

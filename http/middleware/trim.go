@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/bytedance/sonic"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // TrimStrings middleware automatically trims whitespace from string fields
@@ -15,7 +15,7 @@ import (
 // This ensures that all string inputs are cleaned of leading/trailing whitespace
 // without requiring manual trimming in each handler or service.
 func TrimStrings(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		// Skip if no body or empty body
 		body := c.Request().Body
 		if body == nil || body == http.NoBody {

@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,7 +15,7 @@ func TestSecurityHeaders_SetsAllHeaders(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	next := func(c echo.Context) error {
+	next := func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	}
 
@@ -60,7 +60,7 @@ func TestSecurityHeadersWithConfig_CustomConfig(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	next := func(c echo.Context) error {
+	next := func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	}
 
@@ -92,7 +92,7 @@ func TestSecurityHeaders_DoesNotInterfereWithResponse(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	next := func(c echo.Context) error {
+	next := func(c *echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{"message": "Hello, World!"})
 	}
 
@@ -111,7 +111,7 @@ func TestSecurityHeaders_AppliesToErrorResponse(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	next := func(c echo.Context) error {
+	next := func(c *echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid input")
 	}
 
@@ -175,7 +175,7 @@ func TestSecurityHeaders_PreventsClickjacking(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	next := func(c echo.Context) error {
+	next := func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	}
 
@@ -199,7 +199,7 @@ func TestSecurityHeaders_PreventsMIMETypeSniffing(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	next := func(c echo.Context) error {
+	next := func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	}
 
@@ -219,7 +219,7 @@ func TestSecurityHeaders_EnforcesHTTPS(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	next := func(c echo.Context) error {
+	next := func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	}
 

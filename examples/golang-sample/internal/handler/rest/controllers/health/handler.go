@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"gorm.io/gorm"
 )
 
@@ -19,7 +19,7 @@ func New(db *gorm.DB) *Controller {
 }
 
 // Check performs full health check including database connectivity
-func (h *Controller) Check(c echo.Context) error {
+func (h *Controller) Check(c *echo.Context) error {
 	status := map[string]any{
 		"status":    "ok",
 		"timestamp": time.Now().UTC().Format(time.RFC3339),
@@ -47,14 +47,14 @@ func (h *Controller) Check(c echo.Context) error {
 }
 
 // Ready returns readiness status for Kubernetes probes
-func (h *Controller) Ready(c echo.Context) error {
+func (h *Controller) Ready(c *echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]any{
 		"status": "ready",
 	})
 }
 
 // Live returns liveness status for Kubernetes probes
-func (h *Controller) Live(c echo.Context) error {
+func (h *Controller) Live(c *echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]any{
 		"status": "alive",
 	})

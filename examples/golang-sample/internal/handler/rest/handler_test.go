@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 
 	apperrors "github.com/haipham22/golang-sample/internal/errors"
 	schemas "github.com/haipham22/golang-sample/internal/schemas"

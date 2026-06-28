@@ -56,7 +56,7 @@
 - MUST convert between schemas and service requests
 - MUST NOT access config directly (inject via constructor)
 
-**Services (`internal/service/`):**
+**Services (`internal/usecase/`):**
 - MUST contain business logic
 - MUST be framework-agnostic (no Echo types)
 - MUST accept injected dependencies
@@ -64,14 +64,14 @@
 - MUST accept/return domain models (not schemas, not ORM entities)
 - MUST NOT access HTTP layer types
 
-**Domain Models (`internal/model/`):**
+**Domain Models (`internal/domain/`):**
 - MUST be pure entities with NO external dependencies
 - MUST NOT import GORM, Echo, or any framework packages
 - MAY contain business logic methods (Validate, CanLogin, etc.)
 - MUST be separate from ORM entities
 - MUST NOT contain persistence concerns
 
-**Storage (`internal/storage/`):**
+**Storage (`internal/repository/`):**
 - MUST define interfaces for data access
 - MUST use GORM for database operations
 - MUST return domain models (not ORM entities)

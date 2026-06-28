@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 
 	"github.com/haipham22/govern/http/jwt"
 )
@@ -12,7 +12,7 @@ import (
 // JWTMiddleware creates JWT authentication middleware for Echo.
 func JWTMiddleware(config *jwt.MiddlewareConfig) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			// Check skip paths with proper prefix matching
 			if shouldSkipPath(c.Path(), config.SkipPaths) {
 				return next(c)
@@ -42,14 +42,14 @@ func JWTMiddleware(config *jwt.MiddlewareConfig) echo.MiddlewareFunc {
 
 // GetCurrentUser retrieves user from Echo context.
 // Returns claims and true if found, nil and false otherwise.
-func GetCurrentUser(c echo.Context) (*jwt.Claims, bool) {
+func GetCurrentUser(c *echo.Context) (*jwt.Claims, bool) {
 	claims, ok := c.Get("user").(*jwt.Claims)
 	return claims, ok
 }
 
 // MustGetCurrentUser retrieves user or panics.
 // Use this in handlers that are guaranteed to have JWT middleware.
-func MustGetCurrentUser(c echo.Context) *jwt.Claims {
+func MustGetCurrentUser(c *echo.Context) *jwt.Claims {
 	claims, ok := GetCurrentUser(c)
 	if !ok {
 		panic("user not found in context")
@@ -58,7 +58,7 @@ func MustGetCurrentUser(c echo.Context) *jwt.Claims {
 }
 
 // GetUserID retrieves user ID from context.
-func GetUserID(c echo.Context) (string, bool) {
+func GetUserID(c *echo.Context) (string, bool) {
 	if userID, ok := c.Get("user_id").(string); ok {
 		return userID, true
 	}
@@ -66,7 +66,7 @@ func GetUserID(c echo.Context) (string, bool) {
 }
 
 // GetUsername retrieves username from context.
-func GetUsername(c echo.Context) (string, bool) {
+func GetUsername(c *echo.Context) (string, bool) {
 	if username, ok := c.Get("username").(string); ok {
 		return username, true
 	}

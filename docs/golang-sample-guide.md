@@ -72,9 +72,9 @@ HTTP Request → Handler → Controller → Service → Domain Model ← Storage
 | Entry Point  | `main.go` + `cmd/`               | Bootstrap, signal handling              | `graceful`, `log`      |
 | HTTP Handler | `internal/handler/rest/`         | Echo binding, routing, response mapping | `http/echo`, `http/jwt` |
 | Controller   | `internal/handler/rest/controllers/` | Request orchestration, error mapping  | `errors`               |
-| Service      | `internal/service/auth/`         | Business logic, JWT, password hashing   | N/A (pure business)    |
-| Storage      | `internal/storage/user/`         | Data access interface + GORM conversion | `database/postgres`     |
-| Model        | `internal/model/`                | Pure domain entities                    | N/A                    |
+| Service      | `internal/usecase/auth/`         | Business logic, JWT, password hashing   | N/A (pure business)    |
+| Storage      | `internal/repository/user/`         | Data access interface + GORM conversion | `database/postgres`     |
+| Model        | `internal/domain/`                | Pure domain entities                    | N/A                    |
 | ORM          | `internal/orm/`                  | GORM entities                           | `database/postgres`     |
 | Schemas      | `internal/schemas/`               | Request/response DTOs                   | N/A                    |
 | Validator    | `internal/validator/`            | go-playground/validator wrapper         | N/A                    |
@@ -239,7 +239,7 @@ mise exec -- go test -race ./...
 mise exec -- go test -cover ./...
 
 # Run specific test
-mise exec -- go test ./internal/service/auth/
+mise exec -- go test ./internal/usecase/auth/
 ```
 
 ### Lint

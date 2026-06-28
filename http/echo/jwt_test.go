@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -25,13 +25,13 @@ func TestJWTMiddleware(t *testing.T) {
 	e := echo.New()
 	e.Use(httpEcho.JWTMiddleware(config))
 
-	e.GET("/protected", func(c echo.Context) error {
+	e.GET("/protected", func(c *echo.Context) error {
 		claims, ok := httpEcho.GetCurrentUser(c)
 		require.True(t, ok)
 		return c.JSON(http.StatusOK, claims)
 	})
 
-	e.GET("/health", func(c echo.Context) error {
+	e.GET("/health", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -65,7 +65,7 @@ func TestJWTMiddleware(t *testing.T) {
 func TestGetCurrentUser(t *testing.T) {
 	e := echo.New()
 
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		claims, ok := httpEcho.GetCurrentUser(c)
 		assert.False(t, ok)
 		assert.Nil(t, claims)
@@ -134,7 +134,7 @@ func TestSkipPathMatching(t *testing.T) {
 			e.Use(httpEcho.JWTMiddleware(config))
 
 			called := false
-			e.GET(tt.path, func(c echo.Context) error {
+			e.GET(tt.path, func(c *echo.Context) error {
 				called = true
 				return c.NoContent(http.StatusOK)
 			})

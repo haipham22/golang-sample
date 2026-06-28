@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -231,7 +231,7 @@ func TestSwaggerIntegration(t *testing.T) {
 		e := echo.New()
 
 		// Setup routes
-		e.GET("/api/users", func(c echo.Context) error {
+		e.GET("/api/users", func(c *echo.Context) error {
 			return c.JSON(http.StatusOK, map[string]string{"message": "users"})
 		})
 
@@ -291,7 +291,7 @@ func TestSwaggerSecurity(t *testing.T) {
 		)
 
 		// Add a catch-all route to verify swagger routes aren't registered
-		e.Any("/*", func(c echo.Context) error {
+		e.Any("/*", func(c *echo.Context) error {
 			return c.String(http.StatusOK, "caught")
 		})
 

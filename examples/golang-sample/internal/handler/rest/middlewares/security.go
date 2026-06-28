@@ -3,7 +3,7 @@ package middlewares
 import (
 	"fmt"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // SecurityHeaders returns a middleware that adds security headers to all responses
@@ -36,7 +36,7 @@ func DefaultSecurityHeadersConfig() SecurityHeadersConfig {
 // SecurityHeadersWithConfig returns a security headers middleware with custom configuration
 func SecurityHeadersWithConfig(config SecurityHeadersConfig) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			// X-Frame-Options
 			if config.FrameOptions != "" {
 				c.Response().Header().Set("X-Frame-Options", config.FrameOptions)

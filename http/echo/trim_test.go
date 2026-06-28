@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -32,7 +32,7 @@ func TestTrimStrings_Integration(t *testing.T) {
 
 		// Handler to verify trimmed data
 		var receivedData map[string]any
-		handler := func(c echo.Context) error {
+		handler := func(c *echo.Context) error {
 			err := c.Bind(&receivedData)
 			require.NoError(t, err)
 			return c.JSON(http.StatusOK, receivedData)
@@ -64,7 +64,7 @@ func TestTrimStrings_Integration(t *testing.T) {
 		c := e.NewContext(req, rec)
 
 		var receivedData map[string]any
-		handler := func(c echo.Context) error {
+		handler := func(c *echo.Context) error {
 			err := c.Bind(&receivedData)
 			require.NoError(t, err)
 			return c.JSON(http.StatusOK, receivedData)
@@ -92,7 +92,7 @@ func TestTrimStrings_Integration(t *testing.T) {
 		c := e.NewContext(req, rec)
 
 		var receivedData map[string]any
-		handler := func(c echo.Context) error {
+		handler := func(c *echo.Context) error {
 			err := c.Bind(&receivedData)
 			require.NoError(t, err)
 			return c.JSON(http.StatusOK, receivedData)
@@ -115,7 +115,7 @@ func TestTrimStrings_Integration(t *testing.T) {
 		c := e.NewContext(req, rec)
 
 		handlerCalled := false
-		handler := func(c echo.Context) error {
+		handler := func(c *echo.Context) error {
 			handlerCalled = true
 			return c.String(http.StatusOK, "ok")
 		}
@@ -135,7 +135,7 @@ func TestTrimStrings_Integration(t *testing.T) {
 		c := e.NewContext(req, rec)
 
 		handlerCalled := false
-		handler := func(c echo.Context) error {
+		handler := func(c *echo.Context) error {
 			handlerCalled = true
 			return c.String(http.StatusOK, "ok")
 		}
@@ -152,7 +152,7 @@ func TestTrimStrings_EchoIntegration(t *testing.T) {
 		e := echo.New()
 
 		// Setup route with TrimStrings middleware
-		e.POST("/api/register", func(c echo.Context) error {
+		e.POST("/api/register", func(c *echo.Context) error {
 			var req struct {
 				Username string `json:"username"`
 				Email    string `json:"email"`
@@ -189,7 +189,7 @@ func TestTrimStrings_EchoIntegration(t *testing.T) {
 		g := e.Group("/api/v1")
 		g.Use(TrimStrings)
 
-		g.POST("/register", func(c echo.Context) error {
+		g.POST("/register", func(c *echo.Context) error {
 			var req struct {
 				Username string `json:"username"`
 			}

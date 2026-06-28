@@ -881,3 +881,392 @@ func TestRepo_CompleteWorkflow_Integration(t *testing.T) {
 	assert.Equal(t, created.ID, found.ID)
 	assert.Equal(t, "workflowuser", found.Username)
 }
+
+// TestRepo_FindUserByID_Integration tests FindUserByID with real database
+func TestRepo_FindUserByID_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test in short mode")
+	}
+
+	db := openTestDB(t)
+
+	if err := db.AutoMigrate(&orm.User{}); err != nil {
+		t.Fatalf("failed to migrate: %v", err)
+	}
+
+	log := zap.NewNop().Sugar()
+	storage := New(log, db).(*repo)
+
+	ctx := context.Background()
+
+	// Create test users
+	user1 := &orm.User{Username: "user1", Email: "user1@example.com", PasswordHash: "hash1"}
+	user2 := &orm.User{Username: "user2", Email: "user2@example.com", PasswordHash: "hash2"}
+	require.NoError(t, db.Create(user1).Error)
+	require.NoError(t, db.Create(user2).Error)
+
+	// Test finding existing user
+	found, err := storage.FindUserByID(ctx, user1.ID)
+	require.NoError(t, err)
+	require.NotNil(t, found)
+	assert.Equal(t, user1.ID, found.ID)
+	assert.Equal(t, "user1", found.Username)
+	assert.Equal(t, "user1@example.com", found.Email)
+
+	// Test finding another user
+	found, err = storage.FindUserByID(ctx, user2.ID)
+	require.NoError(t, err)
+	require.NotNil(t, found)
+	assert.Equal(t, user2.ID, found.ID)
+	assert.Equal(t, "user2", found.Username)
+
+	// Test non-existent user (returns nil, not error)
+	found, err = storage.FindUserByID(ctx, 9999)
+	assert.NoError(t, err)
+	assert.Nil(t, found)
+
+	// Test with zero ID
+	found, err = storage.FindUserByID(ctx, 0)
+	assert.NoError(t, err)
+	assert.Nil(t, found)
+}
+
+// TestRepo_ListUsers_Integration tests ListUsers with real database
+func TestRepo_ListUsers_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test in short mode")
+	}
+
+	db := openTestDB(t)
+
+	if err := db.AutoMigrate(&orm.User{}); err != nil {
+		t.Fatalf("failed to migrate: %v", err)
+	}
+
+	log := zap.NewNop().Sugar()
+	storage := New(log, db).(*repo)
+
+	ctx := context.Background()
+
+	// Create test users
+	users := []*orm.User{
+		{Username: "user1", Email: "user1@example.com", PasswordHash: "hash1"},
+		{Username: "user2", Email: "user2@example.com", PasswordHash: "hash2"},
+		{Username: "user3", Email: "user3@example.com", PasswordHash: "hash3"},
+		{Username: "user4", Email: "user4@example.com", PasswordHash: "hash4"},
+		{Username: "user5", Email: "user5@example.com", PasswordHash: "hash5"},
+	}
+	for _, user := range users {
+		require.NoError(t, db.Create(user).Error)
+	}
+
+	t.Run("list all users with default limit", func(t *testing.T) {
+		result, total, err := storage.ListUsers(ctx, ListUsersParams{})
+		require.NoError(t, err)
+		assert.Equal(t, int64(5), total)
+		assert.Len(t, result, 5)
+		// Verify ordered by ID ascending
+		assert.Less(t, result[0].ID, result[1].ID)
+		assert.Less(t, result[1].ID, result[2].ID)
+	})
+
+	t.Run("list with custom limit", func(t *testing.T) {
+		result, total, err := storage.ListUsers(ctx, ListUsersParams{Limit: 2})
+		require.NoError(t, err)
+		assert.Equal(t, int64(5), total)
+		assert.Len(t, result, 2)
+	})
+
+	t.Run("list with offset", func(t *testing.T) {
+		result, total, err := storage.ListUsers(ctx, ListUsersParams{Limit: 2, Offset: 2})
+		require.NoError(t, err)
+		assert.Equal(t, int64(5), total)
+		assert.Len(t, result, 2)
+		// Should return user3 and user4
+		assert.Equal(t, "user3", result[0].Username)
+		assert.Equal(t, "user4", result[1].Username)
+	})
+
+	t.Run("list with offset beyond data", func(t *testing.T) {
+		result, total, err := storage.ListUsers(ctx, ListUsersParams{Limit: 2, Offset: 10})
+		require.NoError(t, err)
+		assert.Equal(t, int64(5), total)
+		assert.Len(t, result, 0)
+	})
+
+	t.Run("list with zero limit uses default", func(t *testing.T) {
+		result, total, err := storage.ListUsers(ctx, ListUsersParams{Limit: 0})
+		require.NoError(t, err)
+		assert.Equal(t, int64(5), total)
+		assert.Len(t, result, 5)
+	})
+
+	t.Run("list empty database", func(t *testing.T) {
+		// Use a fresh database
+		db2 := openTestDB(t)
+		require.NoError(t, db2.AutoMigrate(&orm.User{}))
+		storage2 := New(log, db2).(*repo)
+
+		result, total, err := storage2.ListUsers(ctx, ListUsersParams{})
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), total)
+		assert.Len(t, result, 0)
+	})
+}
+
+// TestRepo_CheckUniqueness_Integration tests CheckUniqueness with real database
+func TestRepo_CheckUniqueness_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test in short mode")
+	}
+
+	db := openTestDB(t)
+
+	if err := db.AutoMigrate(&orm.User{}); err != nil {
+		t.Fatalf("failed to migrate: %v", err)
+	}
+
+	log := zap.NewNop().Sugar()
+	storage := New(log, db).(*repo)
+
+	ctx := context.Background()
+
+	// Create a test user
+	user := &orm.User{Username: "existinguser", Email: "existing@example.com", PasswordHash: "hash"}
+	require.NoError(t, db.Create(user).Error)
+
+	t.Run("both unique", func(t *testing.T) {
+		usernameExists, emailExists, err := storage.CheckUniqueness(ctx, "newuser", "new@example.com")
+		require.NoError(t, err)
+		assert.False(t, usernameExists)
+		assert.False(t, emailExists)
+	})
+
+	t.Run("username exists", func(t *testing.T) {
+		usernameExists, emailExists, err := storage.CheckUniqueness(ctx, "existinguser", "new@example.com")
+		require.NoError(t, err)
+		assert.True(t, usernameExists)
+		assert.False(t, emailExists)
+	})
+
+	t.Run("email exists", func(t *testing.T) {
+		usernameExists, emailExists, err := storage.CheckUniqueness(ctx, "newuser", "existing@example.com")
+		require.NoError(t, err)
+		assert.False(t, usernameExists)
+		assert.True(t, emailExists)
+	})
+
+	t.Run("both exist", func(t *testing.T) {
+		usernameExists, emailExists, err := storage.CheckUniqueness(ctx, "existinguser", "existing@example.com")
+		require.NoError(t, err)
+		assert.True(t, usernameExists)
+		assert.True(t, emailExists)
+	})
+
+	t.Run("case sensitivity", func(t *testing.T) {
+		// SQLite is case-insensitive by default for LIKE, but case-sensitive for =
+		usernameExists, emailExists, err := storage.CheckUniqueness(ctx, "ExistingUser", "EXISTING@EXAMPLE.COM")
+		require.NoError(t, err)
+		// Should be case-sensitive for exact match
+		assert.False(t, usernameExists)
+		assert.False(t, emailExists)
+	})
+}
+
+// TestRepo_FindUserByUsernameWithPassword_Integration tests FindUserByUsernameWithPassword
+func TestRepo_FindUserByUsernameWithPassword_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test in short mode")
+	}
+
+	db := openTestDB(t)
+
+	if err := db.AutoMigrate(&orm.User{}); err != nil {
+		t.Fatalf("failed to migrate: %v", err)
+	}
+
+	log := zap.NewNop().Sugar()
+	storage := New(log, db).(*repo)
+
+	ctx := context.Background()
+
+	// Create a test user with password
+	passwordHash := "hashedpassword123"
+	user := &orm.User{Username: "testuser", Email: "test@example.com", PasswordHash: passwordHash}
+	require.NoError(t, db.Create(user).Error)
+
+	t.Run("find existing user with password", func(t *testing.T) {
+		found, hash, err := storage.FindUserByUsernameWithPassword(ctx, "testuser")
+		require.NoError(t, err)
+		require.NotNil(t, found)
+		assert.Equal(t, passwordHash, hash)
+		assert.Equal(t, "testuser", found.Username)
+		assert.Equal(t, "test@example.com", found.Email)
+	})
+
+	t.Run("find non-existent user returns nil", func(t *testing.T) {
+		found, hash, err := storage.FindUserByUsernameWithPassword(ctx, "nonexistent")
+		require.NoError(t, err)
+		assert.Nil(t, found)
+		assert.Empty(t, hash)
+	})
+
+	t.Run("find with empty username", func(t *testing.T) {
+		found, hash, err := storage.FindUserByUsernameWithPassword(ctx, "")
+		require.NoError(t, err)
+		assert.Nil(t, found)
+		assert.Empty(t, hash)
+	})
+}
+
+// Converter tests
+func TestConverter_ormToModel(t *testing.T) {
+	t.Run("converts valid ORM user to domain user", func(t *testing.T) {
+		now := time.Now()
+		ormUser := &orm.User{
+			ID:        123,
+			Username:  "testuser",
+			Email:     "test@example.com",
+			CreatedAt: now,
+			UpdatedAt: now,
+		}
+
+		domainUser := ormToModel(ormUser)
+
+		assert.NotNil(t, domainUser)
+		assert.Equal(t, uint(123), domainUser.ID)
+		assert.Equal(t, "testuser", domainUser.Username)
+		assert.Equal(t, "test@example.com", domainUser.Email)
+		assert.WithinDuration(t, now, domainUser.CreatedAt, time.Second)
+		assert.WithinDuration(t, now, domainUser.UpdatedAt, time.Second)
+	})
+
+	t.Run("returns nil for nil ORM user", func(t *testing.T) {
+		result := ormToModel(nil)
+		assert.Nil(t, result)
+	})
+
+	t.Run("excludes password hash from domain model", func(t *testing.T) {
+		ormUser := &orm.User{
+			ID:           1,
+			Username:     "testuser",
+			Email:        "test@example.com",
+			PasswordHash: "secret123",
+		}
+
+		domainUser := ormToModel(ormUser)
+
+		assert.NotNil(t, domainUser)
+		// Domain User doesn't have PasswordHash field, so it's automatically excluded
+		assert.Equal(t, "testuser", domainUser.Username)
+	})
+}
+
+func TestConverter_modelToORM(t *testing.T) {
+	t.Run("converts valid domain user to ORM user", func(t *testing.T) {
+		now := time.Now()
+		domainUser := &domain.User{
+			ID:        456,
+			Username:  "domainuser",
+			Email:     "domain@example.com",
+			CreatedAt: now,
+			UpdatedAt: now,
+		}
+
+		ormUser := modelToORM(domainUser)
+
+		assert.NotNil(t, ormUser)
+		assert.Equal(t, uint(456), ormUser.ID)
+		assert.Equal(t, "domainuser", ormUser.Username)
+		assert.Equal(t, "domain@example.com", ormUser.Email)
+		assert.WithinDuration(t, now, ormUser.CreatedAt, time.Second)
+		assert.WithinDuration(t, now, ormUser.UpdatedAt, time.Second)
+	})
+
+	t.Run("returns nil for nil domain user", func(t *testing.T) {
+		result := modelToORM(nil)
+		assert.Nil(t, result)
+	})
+
+	t.Run("ORM user has empty password hash initially", func(t *testing.T) {
+		domainUser := &domain.User{
+			Username: "newuser",
+			Email:    "new@example.com",
+		}
+
+		ormUser := modelToORM(domainUser)
+
+		assert.NotNil(t, ormUser)
+		assert.Empty(t, ormUser.PasswordHash)
+	})
+}
+
+func TestConverter_ormSliceToModelSlice(t *testing.T) {
+	t.Run("converts slice of ORM users to domain users", func(t *testing.T) {
+		ormUsers := []*orm.User{
+			{ID: 1, Username: "user1", Email: "user1@example.com"},
+			{ID: 2, Username: "user2", Email: "user2@example.com"},
+			{ID: 3, Username: "user3", Email: "user3@example.com"},
+		}
+
+		domainUsers := ormSliceToModelSlice(ormUsers)
+
+		assert.NotNil(t, domainUsers)
+		assert.Len(t, domainUsers, 3)
+		assert.Equal(t, "user1", domainUsers[0].Username)
+		assert.Equal(t, "user2", domainUsers[1].Username)
+		assert.Equal(t, "user3", domainUsers[2].Username)
+	})
+
+	t.Run("returns nil for nil slice", func(t *testing.T) {
+		result := ormSliceToModelSlice(nil)
+		assert.Nil(t, result)
+	})
+
+	t.Run("converts empty slice", func(t *testing.T) {
+		ormUsers := []*orm.User{}
+		domainUsers := ormSliceToModelSlice(ormUsers)
+
+		assert.NotNil(t, domainUsers)
+		assert.Len(t, domainUsers, 0)
+	})
+
+	t.Run("handles slice with nil elements", func(t *testing.T) {
+		ormUsers := []*orm.User{
+			{ID: 1, Username: "user1", Email: "user1@example.com"},
+			nil,
+			{ID: 3, Username: "user3", Email: "user3@example.com"},
+		}
+
+		domainUsers := ormSliceToModelSlice(ormUsers)
+
+		assert.NotNil(t, domainUsers)
+		assert.Len(t, domainUsers, 3)
+		assert.NotNil(t, domainUsers[0])
+		assert.Nil(t, domainUsers[1]) // nil in, nil out
+		assert.NotNil(t, domainUsers[2])
+	})
+}
+
+// Round-trip conversion tests
+func TestConverter_RoundTrip(t *testing.T) {
+	t.Run("domain -> ORM -> domain preserves data", func(t *testing.T) {
+		original := &domain.User{
+			ID:        789,
+			Username:  "roundtrip",
+			Email:     "roundtrip@example.com",
+			CreatedAt: time.Now().Add(-24 * time.Hour),
+			UpdatedAt: time.Now(),
+		}
+
+		// Convert to ORM and back
+		ormUser := modelToORM(original)
+		result := ormToModel(ormUser)
+
+		assert.Equal(t, original.ID, result.ID)
+		assert.Equal(t, original.Username, result.Username)
+		assert.Equal(t, original.Email, result.Email)
+		assert.WithinDuration(t, original.CreatedAt, result.CreatedAt, time.Second)
+		assert.WithinDuration(t, original.UpdatedAt, result.UpdatedAt, time.Second)
+	})
+}

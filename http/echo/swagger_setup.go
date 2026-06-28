@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // WithEchoSwagger sets up Swagger UI routes on an Echo instance.
@@ -73,7 +73,7 @@ func setupSwaggerRoutes(e *echo.Echo, settings *swaggerSettings) {
 
 // swaggerUIHandler returns the Swagger UI HTML page.
 func swaggerUIHandler(basePath string, settings *swaggerSettings) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		html := generateSwaggerHTML(basePath, settings)
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTMLCharsetUTF8)
 		return c.HTML(http.StatusOK, html)
@@ -82,7 +82,7 @@ func swaggerUIHandler(basePath string, settings *swaggerSettings) echo.HandlerFu
 
 // swaggerJSONHandler serves the Swagger/OpenAPI JSON specification.
 func swaggerJSONHandler(settings *swaggerSettings) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		// Try to serve from docs package if available
 		// This will return 404 if docs package doesn't exist
 		return c.JSON(http.StatusOK, map[string]any{

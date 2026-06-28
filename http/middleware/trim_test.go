@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/bytedance/sonic"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -34,7 +34,7 @@ func TestTrimStrings_Middleware(t *testing.T) {
 		handlerCalled := false
 		var receivedData map[string]any
 
-		next := func(c echo.Context) error {
+		next := func(c *echo.Context) error {
 			handlerCalled = true
 			// Parse the body that middleware processed
 			bodyBytes, _ := io.ReadAll(c.Request().Body)
@@ -71,7 +71,7 @@ func TestTrimStrings_Middleware(t *testing.T) {
 		c := e.NewContext(req, rec)
 
 		var receivedData map[string]any
-		next := func(c echo.Context) error {
+		next := func(c *echo.Context) error {
 			bodyBytes, _ := io.ReadAll(c.Request().Body)
 			_ = sonic.Unmarshal(bodyBytes, &receivedData)
 			return nil
@@ -100,7 +100,7 @@ func TestTrimStrings_Middleware(t *testing.T) {
 		c := e.NewContext(req, rec)
 
 		var receivedData map[string]any
-		next := func(c echo.Context) error {
+		next := func(c *echo.Context) error {
 			bodyBytes, _ := io.ReadAll(c.Request().Body)
 			_ = sonic.Unmarshal(bodyBytes, &receivedData)
 			return nil
@@ -125,7 +125,7 @@ func TestTrimStrings_Middleware(t *testing.T) {
 		c := e.NewContext(req, rec)
 
 		handlerCalled := false
-		next := func(c echo.Context) error {
+		next := func(c *echo.Context) error {
 			handlerCalled = true
 			return nil
 		}
@@ -147,7 +147,7 @@ func TestTrimStrings_Middleware(t *testing.T) {
 		c := e.NewContext(req, rec)
 
 		handlerCalled := false
-		next := func(c echo.Context) error {
+		next := func(c *echo.Context) error {
 			handlerCalled = true
 			// Body should still be readable (original invalid JSON)
 			bodyBytes, _ := io.ReadAll(c.Request().Body)
@@ -236,7 +236,7 @@ func BenchmarkTrimStringsMiddleware(b *testing.B) {
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)
 
-		next := func(c echo.Context) error {
+		next := func(c *echo.Context) error {
 			return nil
 		}
 

@@ -4,12 +4,12 @@
 
 Based on bxcodec/go-clean-arch + Clean Architecture principles.
 
-> **Naming note (sample app):** the canonical layer names below are the
-> standard for new packages. The `examples/golang-sample/` app uses
-> equivalent names mapping to the same layers — `model/` = `domain/`,
-> `service/` = `usecase/`, `storage/` = `repository/`, and manual DI lives
-> in `internal/handler/rest/di.go` (no `bootstrap/` package). The dependency
-> rule is identical; only the package names differ.
+> **Reference implementation:** `examples/golang-sample/` follows these
+> canonical layer names — `internal/domain` (entities), `internal/usecase`
+> (business logic + repository interfaces), `internal/repository` (GORM/Redis
+> adapters), `internal/handler/{rest,grpc,job,message}` (delivery), and
+> `internal/bootstrap` (manual DI composition root). ORM entities live in
+> `internal/orm`; the dependency rule is identical to the canonical pattern.
 
 ### domain/ (INNER LAYER - Enterprise Business Rules)
 

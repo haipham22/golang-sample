@@ -7,18 +7,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestRateLimit_AllowsRequestsUnderLimit(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/api/login", nil)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
+	var (
+		req *http.Request
+		rec *httptest.ResponseRecorder
+		c   *echo.Context
+	)
 
 	handlerCalled := false
-	next := func(c echo.Context) error {
+	next := func(c *echo.Context) error {
 		handlerCalled = true
 		return c.String(http.StatusOK, "OK")
 	}
@@ -47,11 +49,13 @@ func TestRateLimit_AllowsRequestsUnderLimit(t *testing.T) {
 
 func TestRateLimit_BlocksRequestsOverLimit(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/api/login", nil)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
+	var (
+		req *http.Request
+		rec *httptest.ResponseRecorder
+		c   *echo.Context
+	)
 
-	next := func(c echo.Context) error {
+	next := func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	}
 
@@ -91,11 +95,13 @@ func TestRateLimit_BlocksRequestsOverLimit(t *testing.T) {
 
 func TestRateLimit_SlidingWindow(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/api/login", nil)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
+	var (
+		req *http.Request
+		rec *httptest.ResponseRecorder
+		c   *echo.Context
+	)
 
-	next := func(c echo.Context) error {
+	next := func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	}
 
@@ -147,11 +153,13 @@ func TestRateLimit_SlidingWindow(t *testing.T) {
 
 func TestRateLimit_DifferentIPs(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/api/login", nil)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
+	var (
+		req *http.Request
+		rec *httptest.ResponseRecorder
+		c   *echo.Context
+	)
 
-	next := func(c echo.Context) error {
+	next := func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	}
 
@@ -206,7 +214,7 @@ func TestRateLimit_WithRealIP(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	next := func(c echo.Context) error {
+	next := func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	}
 
@@ -253,7 +261,7 @@ func TestRateLimit_ContextCancellation(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	next := func(c echo.Context) error {
+	next := func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	}
 

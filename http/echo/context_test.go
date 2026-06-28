@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -43,13 +43,13 @@ func TestMustGetCurrentUser(t *testing.T) {
 func TestGetUserID(t *testing.T) {
 	tests := []struct {
 		name   string
-		setup  func(echo.Context)
+		setup  func(*echo.Context)
 		wantID string
 		wantOK bool
 	}{
 		{
 			name: "returns user id when set",
-			setup: func(c echo.Context) {
+			setup: func(c *echo.Context) {
 				c.Set("user_id", "user123")
 			},
 			wantID: "user123",
@@ -57,7 +57,7 @@ func TestGetUserID(t *testing.T) {
 		},
 		{
 			name: "returns false when not set",
-			setup: func(c echo.Context) {
+			setup: func(c *echo.Context) {
 				// Don't set anything
 			},
 			wantID: "",
@@ -65,7 +65,7 @@ func TestGetUserID(t *testing.T) {
 		},
 		{
 			name: "returns false when wrong type",
-			setup: func(c echo.Context) {
+			setup: func(c *echo.Context) {
 				c.Set("user_id", 123) // Wrong type
 			},
 			wantID: "",
@@ -73,7 +73,7 @@ func TestGetUserID(t *testing.T) {
 		},
 		{
 			name: "returns false when empty string",
-			setup: func(c echo.Context) {
+			setup: func(c *echo.Context) {
 				c.Set("user_id", "")
 			},
 			wantID: "",
@@ -98,13 +98,13 @@ func TestGetUserID(t *testing.T) {
 func TestGetUsername(t *testing.T) {
 	tests := []struct {
 		name         string
-		setup        func(echo.Context)
+		setup        func(*echo.Context)
 		wantUsername string
 		wantOK       bool
 	}{
 		{
 			name: "returns username when set",
-			setup: func(c echo.Context) {
+			setup: func(c *echo.Context) {
 				c.Set("username", "testuser")
 			},
 			wantUsername: "testuser",
@@ -112,7 +112,7 @@ func TestGetUsername(t *testing.T) {
 		},
 		{
 			name: "returns false when not set",
-			setup: func(c echo.Context) {
+			setup: func(c *echo.Context) {
 				// Don't set anything
 			},
 			wantUsername: "",
@@ -120,7 +120,7 @@ func TestGetUsername(t *testing.T) {
 		},
 		{
 			name: "returns false when wrong type",
-			setup: func(c echo.Context) {
+			setup: func(c *echo.Context) {
 				c.Set("username", 123) // Wrong type
 			},
 			wantUsername: "",
@@ -128,7 +128,7 @@ func TestGetUsername(t *testing.T) {
 		},
 		{
 			name: "returns false when empty string",
-			setup: func(c echo.Context) {
+			setup: func(c *echo.Context) {
 				c.Set("username", "")
 			},
 			wantUsername: "",
@@ -162,7 +162,7 @@ func TestContextHelpers_Integration(t *testing.T) {
 	e := echo.New()
 	e.Use(httpEcho.JWTMiddleware(config))
 
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		// Test all helper functions
 		claims, ok := httpEcho.GetCurrentUser(c)
 		require.True(t, ok)
