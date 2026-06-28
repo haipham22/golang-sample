@@ -18,9 +18,6 @@ Complete guide for developing, testing, and building golang-sample.
 ### Install Development Tools
 
 ```bash
-# Install Wire (dependency injection)
-go install github.com/google/wire/cmd/wire@latest
-
 # Install Swag (Swagger documentation)
 go install github.com/swaggo/swag/cmd/swag@latest
 
@@ -48,7 +45,6 @@ Install extensions:
 
 **GoLand:**
 - Enable Go Modules integration
-- Configure Wire annotation processing
 
 ## Testing
 
@@ -449,18 +445,9 @@ git commit -m "refactor: extract validation to separate package"
 - [ ] Coverage maintained or improved
 - [ ] Documentation updated
 - [ ] Swagger docs regenerated (if API changed)
-- [ ] Wire dependencies regenerated (if DI changed)
 - [ ] Mocks regenerated (if interfaces changed)
 
 ### Troubleshooting
-
-#### Wire Generation Fails
-
-```bash
-# Clear cache and regenerate
-rm internal/wire_gen.go
-go generate ./internal
-```
 
 #### Tests Fail with "no such file or directory"
 
@@ -529,6 +516,5 @@ go tool pprof mem.prof
 
 - [Effective Go](https://go.dev/doc/effective_go)
 - [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
-- [Wire User Guide](https://github.com/google/wire/blob/main/docs/guide.md)
 - [Echo Guide](https://echo.labstack.com/docs)
 - [Govern Package](https://github.com/haipham22/govern)

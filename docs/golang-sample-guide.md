@@ -173,7 +173,7 @@ examples/golang-sample/
 ├── internal/
 │   ├── handler/rest/           # HTTP handlers
 │   │   ├── controllers/        # Request controllers
-│   │   ├── wire.go            # Wire DI setup
+│   │   ├── di.go              # Manual dependency injection
 │   │   └── routes.go          # Route definitions
 │   ├── service/               # Business logic
 │   │   └── auth/              # Authentication service

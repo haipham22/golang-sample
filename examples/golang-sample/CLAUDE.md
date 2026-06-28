@@ -37,7 +37,7 @@ mise exec -- go build -o bin/serverd .    # Build binary
 mise exec -- mockery                      # Regenerate mocks (if interfaces changed)
 ```
 
-Or via Makefile: `make test | build | run | lint | generate-mocks | generate-wire`.
+Or via Makefile: `make test | build | run | lint | generate-mocks`.
 
 ## Architecture
 
@@ -60,6 +60,7 @@ HTTP Request → Handler → Controller → Service → Domain Model ← Storage
 | ORM          | `internal/orm/`                          | GORM entities                           |
 | Schemas      | `internal/schemas/`                      | Request/response DTOs (HTTP boundary)   |
 | Validator    | `internal/validator/`                    | go-playground/validator wrapper         |
+| Errors       | `internal/errors/` (pkg `apperrors`)     | Typed app errors, HTTP status mapping   |
 | Config       | `pkg/config/`, `pkg/postgres/`           | Environment config, DB connection       |
 
 **Dependency Rule:** `handler → service → model ← storage`. No HTTP→ORM or HTTP→Model direct
@@ -67,8 +68,11 @@ dependencies — always convert through schemas at the boundary.
 
 ### Dependency Injection
 
-Currently uses Google **Wire** (compile-time DI) at `internal/handler/rest/wire.go`.
-A planned migration replaces Wire with manual DI in an `internal/bootstrap/` package.
+Manual dependency injection (no code generation) at `internal/handler/rest/di.go`.
+The `New(log, port, appConfig)` constructor wires the graph explicitly:
+`appConfig → db → storage → service → controllers → echo → NewHandler → server`.
+Errors propagate (e.g. `ErrMissingJWTSecret`); the DB cleanup function is returned
+and must be called on shutdown.
 
 ## Development Rules
 

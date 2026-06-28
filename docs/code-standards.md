@@ -83,8 +83,8 @@
 **Rules:**
 1. All dependencies injected via constructors
 2. No global state in business logic
-3. Use Wire for compile-time dependency injection
-4. Read config at composition root (wire providers)
+3. Use manual dependency injection (constructors wire the graph explicitly; no code generation)
+4. Read config at composition root (DI constructors)
 5. Pass config values as constructor parameters
 
 **Example:**
@@ -126,7 +126,7 @@ golang-sample/
 │   │       ├── swagger/      # API documentation
 │   │       ├── handler.go    # Server setup
 │   │       ├── routes.go     # Route registration
-│   │       └── wire.go       # DI setup
+│   │       └── di.go         # Manual DI setup
 │   ├── service/           # Service layer (business logic)
 │   │   └── auth/          # Auth service
 │   ├── storage/           # Data access layer
