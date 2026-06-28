@@ -29,6 +29,8 @@ This directory contains focused, single-responsibility rule files for Go develop
 | **Clean Architecture** | [clean-architecture.md](clean-architecture.md) | Project structure, layering, dependencies | ~200 |
 | **Dependency Injection** | [dependency-injection.md](dependency-injection.md) | Manual DI, composition root, Wire migration | ~340 |
 | **Cobra CLI** | [cobra-cli.md](cobra-cli.md) | `main.go` + `cmd/` structure, RunE, flags | ~360 |
+| **Graceful** | [graceful.md](graceful.md) | Shutdown, Service, Manager, WorkerGroup | ~350 |
+| **Connection DSN** | [connection-dsn.md](connection-dsn.md) | Prefer DSN/URL over decomposed fields | ~270 |
 | **Coding Standards** | [golang-coding-standards.md](golang-coding-standards.md) | Naming, formatting, file organization | ~250 |
 | **Web Framework** | [web-framework-rules.md](web-framework-rules.md) | Echo handlers, middleware, validation | ~200 |
 | **Database Rules** | [database-rules.md](database-rules.md) | GORM patterns, error envelope, PostgreSQL | ~200 |
@@ -53,6 +55,8 @@ This directory contains focused, single-responsibility rule files for Go develop
 - **Mock generation:** [mockery.md](mockery.md)
 - **Dependency injection:** [dependency-injection.md](dependency-injection.md)
 - **CLI / commands:** [cobra-cli.md](cobra-cli.md)
+- **Graceful shutdown:** [graceful.md](graceful.md)
+- **Connection strings (DSN/URL):** [connection-dsn.md](connection-dsn.md)
 - **API docs:** [golang-swagger.md](golang-swagger.md)
 - **Docker containers:** [docker.md](docker.md)
 

@@ -158,6 +158,8 @@ func getErrorSeverity(err error) string {
 
 ## Environment Configuration
 
+> **Connection strings (Postgres DSN, Redis URL, …):** prefer a single DSN/URL field per resource over decomposed host/port/user/… fields — see [connection-dsn.md](connection-dsn.md).
+
 **Configuration structure with error envelope:**
 ```go
 // GOOD - Proper configuration with validation and error envelope

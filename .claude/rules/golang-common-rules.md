@@ -22,6 +22,8 @@ This guide is split into focused topic files for better maintainability:
 | **Mockery** | [mockery.md](mockery.md) | ~380 |
 | **Dependency Injection** | [dependency-injection.md](dependency-injection.md) | ~340 |
 | **Cobra CLI** | [cobra-cli.md](cobra-cli.md) | ~360 |
+| **Graceful** | [graceful.md](graceful.md) | ~350 |
+| **Connection DSN** | [connection-dsn.md](connection-dsn.md) | ~270 |
 
 ---
 
