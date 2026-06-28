@@ -223,6 +223,8 @@ func (h *authHandler) Login(c echo.Context) error {
 
 ### bootstrap/ (Manual DI - Replacing Wire)
 
+> **Detailed manual DI patterns** (composition root, `(T, cleanup, error)` triple, wiring order, Wire migration): see [dependency-injection.md](dependency-injection.md).
+
 **Location:** `internal/bootstrap/`
 
 **Contains:**

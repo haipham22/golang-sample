@@ -19,6 +19,9 @@ This guide is split into focused topic files for better maintainability:
 | **Mise Toolchain** | [mise.md](mise.md) | ~200 |
 | **Common Idioms** | [golang-idioms.md](golang-idioms.md) | ~150 |
 | **Testing** | [golang-testing.md](golang-testing.md) | ~200 |
+| **Mockery** | [mockery.md](mockery.md) | ~380 |
+| **Dependency Injection** | [dependency-injection.md](dependency-injection.md) | ~340 |
+| **Cobra CLI** | [cobra-cli.md](cobra-cli.md) | ~360 |
 
 ---
 

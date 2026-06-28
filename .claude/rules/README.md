@@ -27,11 +27,14 @@ This directory contains focused, single-responsibility rule files for Go develop
 | **Common Idioms** | [golang-idioms.md](golang-idioms.md) | Interface satisfaction, defer, zero values | ~150 |
 | **Testing** | [golang-testing.md](golang-testing.md) | Table-driven tests, mocking, benchmarks | ~200 |
 | **Clean Architecture** | [clean-architecture.md](clean-architecture.md) | Project structure, layering, dependencies | ~200 |
+| **Dependency Injection** | [dependency-injection.md](dependency-injection.md) | Manual DI, composition root, Wire migration | ~340 |
+| **Cobra CLI** | [cobra-cli.md](cobra-cli.md) | `main.go` + `cmd/` structure, RunE, flags | ~360 |
 | **Coding Standards** | [golang-coding-standards.md](golang-coding-standards.md) | Naming, formatting, file organization | ~250 |
 | **Web Framework** | [web-framework-rules.md](web-framework-rules.md) | Echo handlers, middleware, validation | ~200 |
 | **Database Rules** | [database-rules.md](database-rules.md) | GORM patterns, error envelope, PostgreSQL | ~200 |
 | **Infrastructure** | [infrastructure-rules.md](infrastructure-rules.md) | Zap logging, environment config | ~200 |
 | **Docker** | [docker.md](docker.md) | Docker Compose, multi-stage builds, containers | ~200 |
+| **Mockery** | [mockery.md](mockery.md) | Mock generation (v3), config, interface design | ~380 |
 
 ---
 
@@ -47,6 +50,9 @@ This directory contains focused, single-responsibility rule files for Go develop
 - **HTTP handlers:** [web-framework-rules.md](web-framework-rules.md)
 - **Validation:** [golang-validator.md](golang-validator.md)
 - **Testing:** [golang-testing.md](golang-testing.md)
+- **Mock generation:** [mockery.md](mockery.md)
+- **Dependency injection:** [dependency-injection.md](dependency-injection.md)
+- **CLI / commands:** [cobra-cli.md](cobra-cli.md)
 - **API docs:** [golang-swagger.md](golang-swagger.md)
 - **Docker containers:** [docker.md](docker.md)
 
