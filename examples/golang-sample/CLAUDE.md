@@ -1,0 +1,103 @@
+# golang-sample - Go Development Guide
+
+Sample application demonstrating the [govern](../..) library with clean architecture principles
+(Echo + GORM + JWT). Module: `github.com/haipham22/golang-sample`.
+
+## External Import
+
+This module imports govern as an **external dependency** — there is no `go.work`. The `replace`
+directive in [go.mod](go.mod) points at the root govern module for local development:
+
+```
+require github.com/haipham22/govern v0.0.0
+replace github.com/haipham22/govern => ../../
+```
+
+For production, drop the `replace` and use the published govern version.
+
+## Project Setup
+
+```bash
+mise install                  # Install Go + tools
+mise exec -- go mod tidy      # Resolve deps (incl. local govern via replace)
+mise exec -- go mod download
+```
+
+## Development Workflow
+
+```bash
+mise exec -- goimports -w .               # Format
+mise exec -- golangci-lint run            # Lint
+mise exec -- staticcheck ./...            # Static analysis
+mise exec -- errcheck -blank ./...        # Error check
+mise exec -- go test ./...                # Test
+mise exec -- go test -race ./...          # Test (race)
+mise exec -- go test -cover ./...         # Coverage
+mise exec -- go build -o bin/serverd .    # Build binary
+mise exec -- mockery                      # Regenerate mocks (if interfaces changed)
+```
+
+Or via Makefile: `make test | build | run | lint | generate-mocks | generate-wire`.
+
+## Architecture
+
+Clean architecture based on the bxcodec/go-clean-arch pattern.
+
+```
+HTTP Request → Handler → Controller → Service → Domain Model ← Storage
+```
+
+### Layers
+
+| Layer        | Location                                 | Responsibility                          |
+| ------------ | ---------------------------------------- | --------------------------------------- |
+| Entry point  | `main.go` + `cmd/` (Cobra)               | Bootstrap, signal handling              |
+| HTTP Handler | `internal/handler/rest/`                 | Echo binding, routing, response mapping |
+| Controller   | `internal/handler/rest/controllers/`     | Request orchestration, error mapping    |
+| Service      | `internal/service/auth/`                 | Business logic, JWT, password hashing   |
+| Storage      | `internal/storage/user/`                 | Data access interface + GORM conversion |
+| Model        | `internal/model/`                        | Pure domain entities (no externals)     |
+| ORM          | `internal/orm/`                          | GORM entities                           |
+| Schemas      | `internal/schemas/`                      | Request/response DTOs (HTTP boundary)   |
+| Validator    | `internal/validator/`                    | go-playground/validator wrapper         |
+| Config       | `pkg/config/`, `pkg/postgres/`           | Environment config, DB connection       |
+
+**Dependency Rule:** `handler → service → model ← storage`. No HTTP→ORM or HTTP→Model direct
+dependencies — always convert through schemas at the boundary.
+
+### Dependency Injection
+
+Currently uses Google **Wire** (compile-time DI) at `internal/handler/rest/wire.go`.
+A planned migration replaces Wire with manual DI in an `internal/bootstrap/` package.
+
+## Development Rules
+
+The full Go ruleset is at [`../../.claude/rules/`](../../.claude/rules/) — see
+[`.claude/rules/README.md`](../../.claude/rules/README.md). Key rules:
+
+- ✅ Always use `mise exec --` for Go commands
+- ✅ Pass `context.Context` as first parameter in I/O functions
+- ✅ Use transactions for multi-step database operations
+- ✅ Validate input before database operations
+- ✅ Add Swagger annotations to HTTP handlers
+- ✅ Follow clean architecture layering
+- ✅ Never expose password fields (`json:"-"`)
+- ✅ Wrap errors with context: `fmt.Errorf("...: %w", err)`
+
+## Configuration
+
+Copy `.env.example` to `.env`. Key variables: `APP_ENV`, `APP_DEBUG`, `APP_POSTGRES_DSN`,
+`APP_API_SECRET` (32+ chars). Never commit real credentials.
+
+## Testing
+
+- SQLite in-memory for storage tests (no external DB required)
+- Mockery-generated mocks in `internal/mocks/{service,storage}/`
+- Test fixtures: `.test-env`, `config.test.yaml` (resolved via `getProjectRoot()`)
+- Always run with `-race`: `mise exec -- go test -race ./...`
+
+## File Naming
+
+- **Go files:** `snake_case` (`user_service.go`)
+- **Test files:** `source_test.go` (`user_service_test.go`)
+- **Packages:** `snake_case`, singular, lowercase (`package auth`)

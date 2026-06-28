@@ -1,126 +1,110 @@
-# golang-sample - Go Development Guide
+# Govern - Go Development Guide
 
-Production-ready Go API demonstrating clean architecture principles with Echo framework and govern package stack.
+Monorepo containing the **govern** library (root module) and a sample application
+(`examples/golang-sample/`). Both are independent Go modules — there is **no `go.work`**; the
+sample imports govern as an external dependency via a `replace` directive.
 
-## Project Setup
+## Repository Structure
 
-**Prerequisites:**
-- mise installed (manages Go version and tools)
-- Go 1.26.0 (managed by mise)
-- Docker (for PostgreSQL)
+```
+govern/                              # Module: github.com/haipham22/govern
+├── http/  database/  config/  errors/  log/  graceful/
+├── retry/  cron/  mq/  metrics/  healthcheck/
+├── go.mod                           # module github.com/haipham22/govern
+├── Makefile                         # govern library targets (test/build/lint)
+├── README.md  CLAUDE.md  CONTRIBUTING.md
+├── docs/                            # govern library docs
+├── .claude/rules/                   # Go development rules
+└── examples/
+    └── golang-sample/               # Module: github.com/haipham22/golang-sample
+        ├── cmd/  internal/  pkg/
+        ├── go.mod                   # require govern v0.0.0 + replace => ../../
+        └── Makefile                 # sample app targets
+```
 
-**Initial Setup:**
+## Modules
+
+- **Govern Library** (root) — `github.com/haipham22/govern`, published as a Go library.
+- **Sample App** (`examples/golang-sample/`) — `github.com/haipham22/golang-sample`, demonstrates
+  govern usage with clean architecture. Uses `replace github.com/haipham22/govern => ../../` for
+  local development.
+
+## Prerequisites
+
+- [mise](https://mise.run) (manages Go version and tools)
+- Go 1.25+ (managed by mise)
+- Docker (for PostgreSQL when running the sample app)
+
+## Initial Setup
+
 ```bash
-# Install mise tools
-mise install
-
-# Verify Go version
-mise exec -- go version
-
-# Install dependencies
-mise exec -- go mod download
+mise install                    # Install Go + tools
+mise exec -- go version         # Verify Go version
+mise exec -- go mod download    # Fetch govern library deps
 ```
 
 ## Development Workflow
 
-### Before Making Changes
+### Govern Library (root)
 
-1. **Install/update mise tools:**
-   ```bash
-   mise install
-   ```
+```bash
+mise exec -- goimports -w .                 # Format
+mise exec -- golangci-lint run              # Lint
+mise exec -- staticcheck ./...              # Static analysis
+mise exec -- errcheck -blank ./...          # Error check
+mise exec -- go test ./...                  # Test
+mise exec -- go test -race ./...            # Test (race)
+mise exec -- go build ./...                 # Build
+```
 
-2. **Check current branch:**
-   ```bash
-   git status
-   git branch --show-current
-   ```
+Or via Makefile: `make test | build | lint`.
 
-### Making Code Changes
+### Sample App (`examples/golang-sample/`)
 
-1. **Edit Go files** - Follow clean architecture layers
-2. **Format code:**
-   ```bash
-   mise exec -- goimports -w .
-   ```
+```bash
+cd examples/golang-sample
+mise exec -- go mod tidy                     # Resolve deps (incl. local govern via replace)
+mise exec -- go test ./...                   # Test
+mise exec -- go build -o bin/serverd .       # Build
+mise exec -- mockery                         # Regenerate mocks (if interfaces changed)
+```
 
-3. **Run static analysis:**
-   ```bash
-   mise exec -- golangci-lint run
-   mise exec -- staticcheck ./...
-   mise exec -- errcheck -blank ./...
-   ```
-
-4. **Run tests:**
-   ```bash
-   mise exec -- go test ./...
-   mise exec -- go test -race ./...
-   mise exec -- go test -cover ./...
-   ```
-
-5. **Build to verify:**
-   ```bash
-   mise exec -- go build ./...
-   ```
-
-### After Making Changes
-
-1. **Update mocks (if added new interfaces):**
-   ```bash
-   mise exec -- mockery
-   ```
-
-2. **Commit with conventional commits:**
-   ```bash
-   git add .
-   git commit -m "feat: add user registration endpoint"
-   ```
+See [`examples/golang-sample/CLAUDE.md`](examples/golang-sample/CLAUDE.md) for sample-app specifics.
 
 ## Development Rules
 
-**Comprehensive rules are maintained in [`.claude/rules/`](.claude/rules/):**
+Comprehensive Go rules live in [`.claude/rules/`](.claude/rules/) — see
+[`.claude/rules/README.md`](.claude/rules/README.md) for the full overview:
 
-See [`.claude/rules/README.md`](.claude/rules/README.md) for complete rules overview, including:
-- Type system rules (pointers, generics, values)
-- Context and concurrency patterns
-- Error handling and wrapping
-- Input validation with go-playground/validator
-- Database operations with GORM
-- API documentation with Swagger/OpenAPI
-- Testing best practices
-- Clean architecture structure
-- And more...
+- Type system (pointers, generics, values)
+- Context & concurrency
+- Error handling & wrapping
+- Validation (go-playground/validator)
+- Database & GORM
+- Swagger/OpenAPI
+- Testing
+- Clean architecture
+- Docker, mise toolchain, infrastructure
 
-**Quick reference - Key rules:**
+**Quick reference — key rules:**
 - ✅ Always use `mise exec --` for Go commands
-- ✅ Pass context as first parameter in I/O functions
+- ✅ Pass `context.Context` as first parameter in I/O functions
 - ✅ Use transactions for multi-step database operations
 - ✅ Validate input before database operations
-- ✅ Add Swagger annotations to HTTP handlers
+- ✅ Wrap errors with context: `fmt.Errorf("...: %w", err)`
 - ✅ Follow clean architecture layering
 
----
+## CI/CD
 
-## Architecture
+Workflows live in [`.github/workflows/`](.github/workflows/) (monorepo pattern — `paths` filters
+select the module):
 
-**Clean Architecture based on bxcodec/go-clean-arch pattern.**
+- `test.yml` — govern library tests (triggers on `config/**`, `http/**`, …)
+- `test-sample.yml` — sample app tests (triggers on `examples/golang-sample/**`)
+- `push.yml` — Docker image build (context: `examples/golang-sample`)
 
-See: [`.claude/rules/clean-architecture.md`](.claude/rules/clean-architecture.md) for detailed folder structure rules.
-
-**Quick Reference:**
-- **domain/** - Pure entities (flat structure, no interfaces)
-- **usecase/** - Business logic + repository interfaces
-- **repository/** - Database implementations
-- **handler/** - HTTP/gRPC/job/kafka delivery
-- **bootstrap/** - Manual dependency injection
-
-**Dependency Rule:** `handler → usecase → domain`, `repository → domain`
-
----
-
-### File Naming
+## File Naming
 
 - **Go files:** `snake_case` (`user_service.go`)
 - **Test files:** `source_test.go` (`user_service_test.go`)
-- **Packages:** `snake_case` (`package user_service`)
-
+- **Packages:** `snake_case`, singular, lowercase (`package user`)
