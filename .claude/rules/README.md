@@ -37,6 +37,7 @@ This directory contains focused, single-responsibility rule files for Go develop
 | **Infrastructure** | [infrastructure-rules.md](infrastructure-rules.md) | Zap logging, environment config | ~200 |
 | **Docker** | [docker.md](docker.md) | Docker Compose, multi-stage builds, containers | ~200 |
 | **Mockery** | [mockery.md](mockery.md) | Mock generation (v3), config, interface design | ~380 |
+| **Govern Packages** | [govern-packages.md](govern-packages.md) | Prefer govern over external libs / hand-rolled | ~285 |
 
 ---
 
@@ -59,6 +60,7 @@ This directory contains focused, single-responsibility rule files for Go develop
 - **Connection strings (DSN/URL):** [connection-dsn.md](connection-dsn.md)
 - **API docs:** [golang-swagger.md](golang-swagger.md)
 - **Docker containers:** [docker.md](docker.md)
+- **Reusing govern packages:** [govern-packages.md](govern-packages.md)
 
 ---
 
@@ -80,6 +82,7 @@ Data Validation   → golang-validator.md
 Error Handling    → golang-error-handling.md, infrastructure-rules.md
 Testing           → golang-testing.md
 Tooling           → mise.md, golang-swagger.md, docker.md
+Library reuse     → govern-packages.md
 ```
 
 ---
@@ -152,4 +155,4 @@ if err := validator.Validate(req); err != nil {
 
 ---
 
-**Last updated:** 2025-01-28
+**Last updated:** 2026-06-28
