@@ -6,7 +6,6 @@ require (
 	github.com/getsentry/sentry-go v0.47.0
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/golang-jwt/jwt/v5 v5.3.1
-	github.com/google/wire v0.7.0
 	github.com/haipham22/govern v0.0.0
 	github.com/labstack/echo/v4 v4.15.1
 	github.com/pkg/errors v0.9.1

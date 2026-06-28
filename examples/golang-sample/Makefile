@@ -1,6 +1,6 @@
 # Sample Application Makefile
 
-.PHONY: test build run lint clean install-tools generate-mocks generate-wire
+.PHONY: test build run lint clean install-tools generate-mocks
 
 test:
 	@echo "Running sample app tests..."
@@ -29,8 +29,3 @@ install-tools:
 generate-mocks:
 	@echo "Generating mocks..."
 	mise exec -- mockery
-
-generate-wire:
-	@echo "Generating wire dependencies..."
-	rm internal/handler/rest/wire_gen.go
-	mise exec -- wire ./internal/handler/rest/
