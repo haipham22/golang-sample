@@ -1,0 +1,41 @@
+# Mockery v3 configuration for the golang-sample module.
+# Regenerate with: mise exec -- mockery
+#
+# Each source package gets its own output directory to avoid filename
+# collisions (e.g. auth.Service vs product.Service both produce
+# mock_Service.go). Existing test imports (mocks/storage, mocks/service) are
+# preserved.
+all: true
+filename: "mock_{{.InterfaceName}}.go"
+force-file-write: true
+formatter: goimports
+log-level: info
+structname: "Mock{{.InterfaceName}}"
+pkgname: mocks
+
+packages:
+  # User storage interface (existing) — imported by auth usecase tests.
+  github.com/haipham22/golang-sample/internal/repository/user:
+    config:
+      dir: "internal/mocks/storage"
+
+  # Product repository interface (new) — imported by product usecase tests.
+  github.com/haipham22/golang-sample/internal/repository/postgres:
+    config:
+      dir: "internal/mocks/repository"
+
+  # Auth use case interface (existing) — imported by handler tests.
+  github.com/haipham22/golang-sample/internal/usecase/auth:
+    config:
+      dir: "internal/mocks/service"
+
+  # Product use case interface (new) — imported by handler/worker tests.
+  github.com/haipham22/golang-sample/internal/usecase/product:
+    config:
+      dir: "internal/mocks/product"
+
+  # NOTE: the user use case (internal/usecase/user) is intentionally NOT mocked
+  # here. Its Repository interface lives in the same package, so a mockery mock
+  # would create an import cycle (mock -> user -> mock for in-package tests).
+  # Instead, the user use case tests use a hand-written fake Repository, and
+  # handler tests that need a user.Service double use a fake as well.

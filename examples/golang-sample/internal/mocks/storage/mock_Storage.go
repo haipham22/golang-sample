@@ -6,8 +6,8 @@ package mocks
 
 import (
 	"context"
-	"github.com/haipham22/golang-sample/internal/domain"
 
+	"github.com/haipham22/golang-sample/internal/domain"
 	mock "github.com/stretchr/testify/mock"
 )
 
