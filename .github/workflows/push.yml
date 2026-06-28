@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "examples/golang-sample/**"
+      - ".github/workflows/push.yml"
 
 concurrency:
   group: push-${{ github.ref }}
@@ -51,7 +54,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: examples/golang-sample
+          file: examples/golang-sample/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

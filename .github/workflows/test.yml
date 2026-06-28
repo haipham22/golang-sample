@@ -1,19 +1,48 @@
-name: Test
+name: Test Govern Library
 
 on:
   push:
     branches: [main]
+    paths:
+      - "config/**"
+      - "cron/**"
+      - "database/**"
+      - "errors/**"
+      - "graceful/**"
+      - "healthcheck/**"
+      - "http/**"
+      - "log/**"
+      - "metrics/**"
+      - "mq/**"
+      - "retry/**"
+      - "go.mod"
+      - "go.sum"
+      - ".github/workflows/test.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "config/**"
+      - "cron/**"
+      - "database/**"
+      - "errors/**"
+      - "graceful/**"
+      - "healthcheck/**"
+      - "http/**"
+      - "log/**"
+      - "metrics/**"
+      - "mq/**"
+      - "retry/**"
+      - "go.mod"
+      - "go.sum"
+      - ".github/workflows/test.yml"
 
 concurrency:
-  group: test-${{ github.ref }}
+  group: test-govern-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
   actions: read
-  packages: write
 
 jobs:
   test:
@@ -27,19 +56,17 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.25"
-          cache: false
-
-      - name: Install mockery
-        run: go install github.com/vektra/mockery/v3@latest
-
-      - name: Generate mocks
-        run: mockery
+          cache: true
 
       - name: Run tests
-        run: go test -v -race -coverprofile=coverage.out ./...
+        run: |
+          go test -v -race -coverprofile=coverage.out \
+            ./config/... ./cron/... ./database/... ./errors/... ./graceful/... \
+            ./healthcheck/... ./http/... ./log/... ./metrics/... ./mq/... ./retry/...
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:
           file: ./coverage.out
+          flags: govern-library
           fail_ci_if_error: false

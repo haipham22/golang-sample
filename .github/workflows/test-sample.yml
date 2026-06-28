@@ -1,0 +1,56 @@
+name: Test Sample App
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "examples/golang-sample/**"
+      - ".github/workflows/test-sample.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "examples/golang-sample/**"
+      - ".github/workflows/test-sample.yml"
+
+concurrency:
+  group: test-sample-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read
+
+defaults:
+  run:
+    working-directory: examples/golang-sample
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache: true
+          cache-dependency-path: examples/golang-sample/go.sum
+
+      - name: Install mockery
+        run: go install github.com/vektra/mockery/v3@latest
+
+      - name: Generate mocks
+        run: mockery
+
+      - name: Run tests
+        run: go test -v -race -coverprofile=coverage.out ./...
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./examples/golang-sample/coverage.out
+          flags: sample-app
+          fail_ci_if_error: false

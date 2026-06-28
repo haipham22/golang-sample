@@ -1,55 +1,23 @@
-.PHONY: all test mocks lint fmt tidy build serverd clean test-rest
+# Govern Library Makefile
 
-# Default target
-all: build test
+.PHONY: test build lint clean install-tools
 
-# Run all tests
 test:
-	go test -v -race ./...
+	@echo "Running govern library tests..."
+	mise exec -- go test ./config/... ./cron/... ./database/... ./errors/... ./graceful/... ./healthcheck/... ./http/... ./log/... ./metrics/... ./mq/... ./retry/...
 
-# Run tests for specific package
-test-rest:
-	go test -v -race ./internal/handler/rest/...
-
-# Generate mocks with mockery
-mocks:
-	@echo "Generating mocks..."
-	@mockery
-	@echo "Mocks generated"
-
-# Clean all mock files
-clean-mocks:
-	@echo "Removing all mock files..."
-	@find internal -type f -path "*/mocks/*.go" -delete
-	@rm -rf internal/storage/user/mocks
-	@rm -rf internal/service/auth/mocks
-	@echo "Mock files cleaned"
-
-# Remove all mock files and regenerate them
-regenerate-mocks: clean-mocks mocks
-	@echo "Mock regeneration complete!"
-
-# Run linter
-lint:
-	golangci-lint run
-
-# Format code
-fmt:
-	goimports -local golang-sample -w .
-
-# Tidy go modules
-tidy:
-	go mod tidy
-
-# Build the application
 build:
-	go build -o bin/serverd .
+	@echo "Building govern library packages..."
+	mise exec -- go build ./config/... ./cron/... ./database/... ./errors/... ./graceful/... ./healthcheck/... ./http/... ./log/... ./metrics/... ./mq/... ./retry/...
 
-# Run the application
-serverd:
-	go run main.go serverd
+lint:
+	@echo "Running linters on govern library..."
+	mise exec -- golangci-lint run ./config/... ./cron/... ./database/... ./errors/... ./graceful/... ./healthcheck/... ./http/... ./log/... ./metrics/... ./mq/... ./retry/...
 
-# Clean build artifacts
 clean:
-	rm -rf bin/
-	rm -f coverage.out
+	@echo "Cleaning govern library build artifacts..."
+	find . -name "bin" -type d -exec rm -rf {} + 2>/dev/null || true
+
+install-tools:
+	@echo "Installing development tools..."
+	mise install
