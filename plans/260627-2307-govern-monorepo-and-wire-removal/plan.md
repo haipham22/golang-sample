@@ -525,9 +525,7 @@ internal/validator/              → internal/usecase/auth/dto.go (merged)
 - Phase 11 must wait for Phase 10 (error management operational)
 - Phase 12 must wait for Phase 11 (bootstrap/manual DI implemented)
 - Phase 13 must wait for Phase 12 (refactoring complete)
-- Phase 14 must wait for Phase 13 (refactoring complete)
-
-**Critical**: Part 2 cannot start until Part 1 fully complete
+**Critical**: Part 2 started after Part 1 restructuring validated; Phase 07 repository rename remains deferred to release/merge.
 
 ---
 
@@ -588,14 +586,14 @@ internal/validator/              → internal/usecase/auth/dto.go (merged)
 
 **Unit Testing**:
 - Govern packages: `go test ./http/... ./database/... ./config/...`
-- Sample app: `cd golang-sample && go test ./...`
+- Sample app: `cd examples/golang-sample && mise exec -- go test ./...`
 
 **Integration Testing**:
 - External import: Test sample app imports govern as external dependency
 - Generator: Test generation to /tmp/, verify compiles
 
 **End-to-End Testing**:
-- Sample app startup: `cd golang-sample && go run cmd/serverd.go`
+- Sample app startup: `cd examples/golang-sample && mise exec -- go run cmd/serverd.go`
 - Generated project: Generate, build, run, verify imports govern
 
 ### Part 2 Testing
@@ -682,33 +680,29 @@ internal/validator/              → internal/usecase/auth/dto.go (merged)
 
 ### Immediate Actions
 
-1. **Start Part 1**: Begin with Phase 01 (Repository Preparation)
-2. **Execute Part 1 Phases 01-08**: Complete monorepo restructuring
-3. **Validate Part 1**: Ensure all success criteria met
-4. **Start Part 2**: Begin with Phase 09 (Setup Wire Removal)
-5. **Execute Part 2 Phases 09-14**: Complete wire removal and error migration
-6. **Final Validation**: Comprehensive testing of entire system
+1. **Release/merge decision**: Repository rename, release tag, and remote URL update remain deferred.
+2. **Pre-push validation**: Re-run root and sample test suites before push.
+3. **Docs upkeep**: Treat old snippets in phase files as historical unless a header says current state.
 
 ### Implementation Sequence
 
 ```
-Part 1: Monorepo (16h)
-├── Phase 01: Repository Preparation (2h)
-├── Phase 02: Merge Govern Packages (3h)
-├── Phase 03: Move Sample Application (2h)
-├── Phase 04: Root Configuration Update (2h)
-├── Phase 05: Interactive Generator (4h)
-├── Phase 06: Documentation Migration (2h)
-├── Phase 07: Validation & Testing (1h)
-└── Phase 08: Repository Rename & Merge (0h)
+Part 1: Monorepo (12h)
+├── Phase 01: Repository Preparation — done
+├── Phase 02: Merge Govern Packages — done
+├── Phase 03: Move Sample Application — done
+├── Phase 04: Root Configuration Update — done
+├── Phase 05: Documentation Migration — done
+├── Phase 06: Validation & Testing — done
+└── Phase 07: Repository Rename & Merge — deferred
 
-Part 2: Wire Removal (24h) [BLOCKED until Part 1 complete]
-├── Phase 09: Setup Wire Removal Environment (2h)
-├── Phase 10: Custom Error Types (4h)
-├── Phase 11: Centralized Error Management (6h)
-├── Phase 12: Manual DI Implementation (5h)
-├── Phase 13: Error Handler Refactoring (3h)
-└── Phase 14: Wire Removal Testing (4h)
+Part 2: Wire Removal (24h)
+├── Phase 08: Setup Wire Removal Environment — done
+├── Phase 09: Custom Error Types — done
+├── Phase 10: Centralized Error Management — done
+├── Phase 11: Manual DI Implementation — done
+├── Phase 12: Error Handler Refactoring — done
+└── Phase 13: Wire Removal Testing — done
 ```
 
 ---
@@ -719,14 +713,14 @@ Part 2: Wire Removal (24h) [BLOCKED until Part 1 complete]
 
 ✅ External import strategy confirmed (no go.work)
 ✅ Wire removal scope updated (7 files, not 2)
-✅ Module paths clarified (govern at root, golang-sample at root)
-✅ Working directory specified (golang-sample/ for Part 2)
+✅ Module paths clarified (govern at root, sample in `examples/golang-sample/`)
+✅ Working directory specified (`examples/golang-sample/` for sample-specific work)
 ✅ Effort estimates realistic (40h total)
 ✅ Phase dependencies correct (Part 2 blocked by Part 1)
 
 ---
 
-**Plan Status**: Ready for implementation
-**Estimated Completion**: 40 hours
-**Risk Level**: Medium (mitigated with rollback strategies)
-**Red Team Review**: PENDING
+**Plan Status**: ✅ Completed for implementation scope; Phase 07 repository rename/release remains deferred  
+**Estimated Completion**: Done for implemented scope  
+**Risk Level**: Low after validation; release/rename risk remains separate  
+**Red Team Review**: Completed during implementation

@@ -1,7 +1,7 @@
 ---
 title: "Phase 03: Move Sample Application"
 description: "Move sample application code to examples/golang-sample/ and configure external import of govern package"
-status: pending
+status: completed
 priority: P1
 effort: 2h
 branch: feat/monorepo-migration
@@ -11,6 +11,8 @@ dependsOn: [phase-02-merge-govern-packages.md]
 ---
 
 # Phase 03: Move Sample Application
+
+> **Status sync (2026-06-28):** Completed. Current sample path is `examples/golang-sample/`; no `go.work` is used.
 
 ## Overview
 
