@@ -8,7 +8,7 @@ import (
 	apperrors "github.com/haipham22/golang-sample/internal/errors"
 
 	schemas "github.com/haipham22/golang-sample/internal/schemas"
-	authservice "github.com/haipham22/golang-sample/internal/service/auth"
+	authservice "github.com/haipham22/golang-sample/internal/usecase/auth"
 )
 
 // Controller handles HTTP requests for authentication endpoints.

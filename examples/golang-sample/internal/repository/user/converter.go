@@ -1,17 +1,17 @@
 package user
 
 import (
-	"github.com/haipham22/golang-sample/internal/model"
+	"github.com/haipham22/golang-sample/internal/domain"
 	"github.com/haipham22/golang-sample/internal/orm"
 )
 
 // ormToModel converts ORM User to domain User
-func ormToModel(u *orm.User) *model.User {
+func ormToModel(u *orm.User) *domain.User {
 	if u == nil {
 		return nil
 	}
 
-	return &model.User{
+	return &domain.User{
 		ID:        u.ID,
 		Username:  u.Username,
 		Email:     u.Email,
@@ -21,7 +21,7 @@ func ormToModel(u *orm.User) *model.User {
 }
 
 // modelToORM converts domain User to ORM User
-func modelToORM(u *model.User) *orm.User {
+func modelToORM(u *domain.User) *orm.User {
 	if u == nil {
 		return nil
 	}
@@ -36,12 +36,12 @@ func modelToORM(u *model.User) *orm.User {
 }
 
 // ormSliceToModelSlice converts slice of ORM Users to domain Users
-func ormSliceToModelSlice(users []*orm.User) []*model.User {
+func ormSliceToModelSlice(users []*orm.User) []*domain.User {
 	if users == nil {
 		return nil
 	}
 
-	result := make([]*model.User, len(users))
+	result := make([]*domain.User, len(users))
 	for i, u := range users {
 		result[i] = ormToModel(u)
 	}

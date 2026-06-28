@@ -1,12 +1,12 @@
 package auth
 
 import (
-	"github.com/haipham22/golang-sample/internal/model"
+	"github.com/haipham22/golang-sample/internal/domain"
 	"github.com/haipham22/golang-sample/internal/schemas"
 )
 
 // modelToSchemaUser converts domain User to schema User
-func modelToSchemaUser(u *model.User) *schemas.User {
+func modelToSchemaUser(u *domain.User) *schemas.User {
 	if u == nil {
 		return nil
 	}
@@ -21,12 +21,12 @@ func modelToSchemaUser(u *model.User) *schemas.User {
 }
 
 // schemaToModelUser converts schema User to domain User
-func schemaToModelUser(u *schemas.User) *model.User {
+func schemaToModelUser(u *schemas.User) *domain.User {
 	if u == nil {
 		return nil
 	}
 
-	return &model.User{
+	return &domain.User{
 		ID:        u.ID,
 		Username:  u.Username,
 		Email:     u.Email,

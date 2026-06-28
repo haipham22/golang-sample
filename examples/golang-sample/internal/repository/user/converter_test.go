@@ -1,31 +1,31 @@
-package auth
+package user
 
 import (
 	"testing"
 	"time"
 
-	"github.com/haipham22/golang-sample/internal/model"
-	"github.com/haipham22/golang-sample/internal/schemas"
+	"github.com/haipham22/golang-sample/internal/domain"
+	"github.com/haipham22/golang-sample/internal/orm"
 )
 
-func TestModelToSchemaUser(t *testing.T) {
+func TestOrmToModel(t *testing.T) {
 	now := time.Now()
 
 	tests := []struct {
 		name     string
-		input    *model.User
-		expected *schemas.User
+		input    *orm.User
+		expected *domain.User
 	}{
 		{
 			name: "valid conversion",
-			input: &model.User{
+			input: &orm.User{
 				ID:        1,
 				Username:  "testuser",
 				Email:     "test@example.com",
 				CreatedAt: now,
 				UpdatedAt: now,
 			},
-			expected: &schemas.User{
+			expected: &domain.User{
 				ID:        1,
 				Username:  "testuser",
 				Email:     "test@example.com",
@@ -42,7 +42,7 @@ func TestModelToSchemaUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := modelToSchemaUser(tt.input)
+			result := ormToModel(tt.input)
 
 			if tt.expected == nil {
 				if result != nil {
@@ -74,24 +74,24 @@ func TestModelToSchemaUser(t *testing.T) {
 	}
 }
 
-func TestSchemaToModelUser(t *testing.T) {
+func TestModelToORM(t *testing.T) {
 	now := time.Now()
 
 	tests := []struct {
 		name     string
-		input    *schemas.User
-		expected *model.User
+		input    *domain.User
+		expected *orm.User
 	}{
 		{
 			name: "valid conversion",
-			input: &schemas.User{
+			input: &domain.User{
 				ID:        1,
 				Username:  "testuser",
 				Email:     "test@example.com",
 				CreatedAt: now,
 				UpdatedAt: now,
 			},
-			expected: &model.User{
+			expected: &orm.User{
 				ID:        1,
 				Username:  "testuser",
 				Email:     "test@example.com",
@@ -108,7 +108,7 @@ func TestSchemaToModelUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := schemaToModelUser(tt.input)
+			result := modelToORM(tt.input)
 
 			if tt.expected == nil {
 				if result != nil {
@@ -140,10 +140,95 @@ func TestSchemaToModelUser(t *testing.T) {
 	}
 }
 
-func TestSchemaModelRoundTrip(t *testing.T) {
+func TestOrmSliceToModelSlice(t *testing.T) {
 	now := time.Now()
 
-	original := &schemas.User{
+	tests := []struct {
+		name     string
+		input    []*orm.User
+		expected []*domain.User
+	}{
+		{
+			name: "valid slice conversion",
+			input: []*orm.User{
+				{
+					ID:        1,
+					Username:  "user1",
+					Email:     "user1@example.com",
+					CreatedAt: now,
+					UpdatedAt: now,
+				},
+				{
+					ID:        2,
+					Username:  "user2",
+					Email:     "user2@example.com",
+					CreatedAt: now,
+					UpdatedAt: now,
+				},
+			},
+			expected: []*domain.User{
+				{
+					ID:        1,
+					Username:  "user1",
+					Email:     "user1@example.com",
+					CreatedAt: now,
+					UpdatedAt: now,
+				},
+				{
+					ID:        2,
+					Username:  "user2",
+					Email:     "user2@example.com",
+					CreatedAt: now,
+					UpdatedAt: now,
+				},
+			},
+		},
+		{
+			name:     "nil input",
+			input:    nil,
+			expected: nil,
+		},
+		{
+			name:     "empty slice",
+			input:    []*orm.User{},
+			expected: []*domain.User{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := ormSliceToModelSlice(tt.input)
+
+			if tt.expected == nil {
+				if result != nil {
+					t.Errorf("expected nil, got %v", result)
+				}
+				return
+			}
+
+			if len(result) != len(tt.expected) {
+				t.Fatalf("length mismatch: got %d, want %d", len(result), len(tt.expected))
+			}
+
+			for i := range result {
+				if result[i].ID != tt.expected[i].ID {
+					t.Errorf("user[%d].ID mismatch: got %d, want %d", i, result[i].ID, tt.expected[i].ID)
+				}
+				if result[i].Username != tt.expected[i].Username {
+					t.Errorf("user[%d].Username mismatch: got %s, want %s", i, result[i].Username, tt.expected[i].Username)
+				}
+				if result[i].Email != tt.expected[i].Email {
+					t.Errorf("user[%d].Email mismatch: got %s, want %s", i, result[i].Email, tt.expected[i].Email)
+				}
+			}
+		})
+	}
+}
+
+func TestConversionRoundTrip(t *testing.T) {
+	now := time.Now()
+
+	original := &domain.User{
 		ID:        123,
 		Username:  "roundtrip",
 		Email:     "roundtrip@example.com",
@@ -151,17 +236,17 @@ func TestSchemaModelRoundTrip(t *testing.T) {
 		UpdatedAt: now,
 	}
 
-	// Schema -> Model -> Schema
-	modelUser := schemaToModelUser(original)
-	backToSchema := modelToSchemaUser(modelUser)
+	// Model -> ORM -> Model
+	ormUser := modelToORM(original)
+	backToModel := ormToModel(ormUser)
 
-	if backToSchema.ID != original.ID {
-		t.Errorf("ID not preserved: got %d, want %d", backToSchema.ID, original.ID)
+	if backToModel.ID != original.ID {
+		t.Errorf("ID not preserved: got %d, want %d", backToModel.ID, original.ID)
 	}
-	if backToSchema.Username != original.Username {
-		t.Errorf("Username not preserved: got %s, want %s", backToSchema.Username, original.Username)
+	if backToModel.Username != original.Username {
+		t.Errorf("Username not preserved: got %s, want %s", backToModel.Username, original.Username)
 	}
-	if backToSchema.Email != original.Email {
-		t.Errorf("Email not preserved: got %s, want %s", backToSchema.Email, original.Email)
+	if backToModel.Email != original.Email {
+		t.Errorf("Email not preserved: got %s, want %s", backToModel.Email, original.Email)
 	}
 }

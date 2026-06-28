@@ -11,8 +11,8 @@ import (
 
 	authctrl "github.com/haipham22/golang-sample/internal/handler/rest/controllers/auth"
 	healthctrl "github.com/haipham22/golang-sample/internal/handler/rest/controllers/health"
-	authservice "github.com/haipham22/golang-sample/internal/service/auth"
-	userRepo "github.com/haipham22/golang-sample/internal/storage/user"
+	authservice "github.com/haipham22/golang-sample/internal/usecase/auth"
+	userRepo "github.com/haipham22/golang-sample/internal/repository/user"
 	"github.com/haipham22/golang-sample/pkg/config"
 	"github.com/haipham22/golang-sample/pkg/postgres"
 )

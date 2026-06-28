@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/haipham22/golang-sample/internal/model"
+	"github.com/haipham22/golang-sample/internal/domain"
 )
 
 type Service interface {
-	Register(ctx context.Context, req RegisterRequest) (*model.User, error)
+	Register(ctx context.Context, req RegisterRequest) (*domain.User, error)
 	Login(ctx context.Context, req LoginRequest) (*LoginResponse, error)
 }
 
@@ -26,6 +26,6 @@ type LoginRequest struct {
 
 type LoginResponse struct {
 	Token     string
-	User      *model.User
+	User      *domain.User
 	ExpiresAt time.Time
 }

@@ -1,6 +1,7 @@
-package model
+package domain
 
 import (
+	"strings"
 	"testing"
 	"time"
 )
@@ -18,12 +19,12 @@ func TestUser_ValidationEdgeCases(t *testing.T) {
 	})
 
 	t.Run("exactly 50 character username is valid", func(t *testing.T) {
-		username := ""
-		for i := 0; i < 50; i++ {
-			username += string(rune('a' + i%26))
+		var username strings.Builder
+		for i := range 50 {
+			username.WriteString(string(rune('a' + i%26)))
 		}
 		user := &User{
-			Username: username,
+			Username: username.String(),
 			Email:    "test@example.com",
 		}
 		err := user.Validate()

@@ -6,7 +6,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
-	"github.com/haipham22/golang-sample/internal/model"
+	"github.com/haipham22/golang-sample/internal/domain"
 )
 
 type Storage interface {
@@ -15,10 +15,10 @@ type Storage interface {
 	// Returns (usernameExists, emailExists, error)
 	CheckUniqueness(ctx context.Context, username, email string) (bool, bool, error)
 	// CreateUserWithPassword creates a user with password hash (returns domain model without password)
-	CreateUserWithPassword(ctx context.Context, user *model.User, passwordHash string) (*model.User, error)
-	FindUserByUsername(ctx context.Context, username string) (user *model.User, err error)
+	CreateUserWithPassword(ctx context.Context, user *domain.User, passwordHash string) (*domain.User, error)
+	FindUserByUsername(ctx context.Context, username string) (user *domain.User, err error)
 	// FindUserByUsernameWithPassword finds user and returns with password hash for authentication
-	FindUserByUsernameWithPassword(ctx context.Context, username string) (user *model.User, passwordHash string, err error)
+	FindUserByUsernameWithPassword(ctx context.Context, username string) (user *domain.User, passwordHash string, err error)
 }
 
 type repo struct {

@@ -31,7 +31,7 @@ func TestRateLimit_AllowsRequestsUnderLimit(t *testing.T) {
 	h := middleware(next)
 
 	// Make 5 requests (should all succeed)
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		handlerCalled = false
 		req = httptest.NewRequest(http.MethodPost, "/api/login", nil)
 		req.RemoteAddr = "192.168.1.1:1234"
@@ -66,7 +66,7 @@ func TestRateLimit_BlocksRequestsOverLimit(t *testing.T) {
 	testIP := "192.168.1.1:1234"
 
 	// Make 3 requests (should succeed)
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		req = httptest.NewRequest(http.MethodPost, "/api/login", nil)
 		req.RemoteAddr = testIP
 		rec = httptest.NewRecorder()
@@ -110,7 +110,7 @@ func TestRateLimit_SlidingWindow(t *testing.T) {
 	testIP := "192.168.1.2:1234"
 
 	// Make 2 requests (should succeed)
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		req = httptest.NewRequest(http.MethodPost, "/api/login", nil)
 		req.RemoteAddr = testIP
 		rec = httptest.NewRecorder()
@@ -163,7 +163,7 @@ func TestRateLimit_DifferentIPs(t *testing.T) {
 	h := middleware(next)
 
 	// Make 2 requests from IP1 (should succeed)
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		req = httptest.NewRequest(http.MethodPost, "/api/login", nil)
 		req.RemoteAddr = "192.168.1.1:1234"
 		rec = httptest.NewRecorder()
@@ -185,7 +185,7 @@ func TestRateLimit_DifferentIPs(t *testing.T) {
 	assert.Equal(t, http.StatusTooManyRequests, rec.Code)
 
 	// But IP2 should still be able to make requests
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		req = httptest.NewRequest(http.MethodPost, "/api/login", nil)
 		req.RemoteAddr = "192.168.1.2:5678"
 		rec = httptest.NewRecorder()

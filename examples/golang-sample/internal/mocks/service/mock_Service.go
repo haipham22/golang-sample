@@ -6,8 +6,8 @@ package mocks
 
 import (
 	"context"
-	"github.com/haipham22/golang-sample/internal/model"
-	"github.com/haipham22/golang-sample/internal/service/auth"
+	"github.com/haipham22/golang-sample/internal/domain"
+	"github.com/haipham22/golang-sample/internal/usecase/auth"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -108,23 +108,23 @@ func (_c *MockService_Login_Call) RunAndReturn(run func(ctx context.Context, req
 }
 
 // Register provides a mock function for the type MockService
-func (_mock *MockService) Register(ctx context.Context, req auth.RegisterRequest) (*model.User, error) {
+func (_mock *MockService) Register(ctx context.Context, req auth.RegisterRequest) (*domain.User, error) {
 	ret := _mock.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Register")
 	}
 
-	var r0 *model.User
+	var r0 *domain.User
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, auth.RegisterRequest) (*model.User, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, auth.RegisterRequest) (*domain.User, error)); ok {
 		return returnFunc(ctx, req)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, auth.RegisterRequest) *model.User); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, auth.RegisterRequest) *domain.User); ok {
 		r0 = returnFunc(ctx, req)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.User)
+			r0 = ret.Get(0).(*domain.User)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, auth.RegisterRequest) error); ok {
@@ -165,12 +165,12 @@ func (_c *MockService_Register_Call) Run(run func(ctx context.Context, req auth.
 	return _c
 }
 
-func (_c *MockService_Register_Call) Return(user *model.User, err error) *MockService_Register_Call {
+func (_c *MockService_Register_Call) Return(user *domain.User, err error) *MockService_Register_Call {
 	_c.Call.Return(user, err)
 	return _c
 }
 
-func (_c *MockService_Register_Call) RunAndReturn(run func(ctx context.Context, req auth.RegisterRequest) (*model.User, error)) *MockService_Register_Call {
+func (_c *MockService_Register_Call) RunAndReturn(run func(ctx context.Context, req auth.RegisterRequest) (*domain.User, error)) *MockService_Register_Call {
 	_c.Call.Return(run)
 	return _c
 }

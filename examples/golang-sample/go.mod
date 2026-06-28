@@ -1,6 +1,6 @@
 module github.com/haipham22/golang-sample
 
-go 1.25.8
+go 1.26.4
 
 require (
 	github.com/getsentry/sentry-go v0.47.0

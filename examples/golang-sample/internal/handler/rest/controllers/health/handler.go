@@ -20,7 +20,7 @@ func New(db *gorm.DB) *Controller {
 
 // Check performs full health check including database connectivity
 func (h *Controller) Check(c echo.Context) error {
-	status := map[string]interface{}{
+	status := map[string]any{
 		"status":    "ok",
 		"timestamp": time.Now().UTC().Format(time.RFC3339),
 		"service":   "golang-sample-api",
@@ -48,14 +48,14 @@ func (h *Controller) Check(c echo.Context) error {
 
 // Ready returns readiness status for Kubernetes probes
 func (h *Controller) Ready(c echo.Context) error {
-	return c.JSON(http.StatusOK, map[string]interface{}{
+	return c.JSON(http.StatusOK, map[string]any{
 		"status": "ready",
 	})
 }
 
 // Live returns liveness status for Kubernetes probes
 func (h *Controller) Live(c echo.Context) error {
-	return c.JSON(http.StatusOK, map[string]interface{}{
+	return c.JSON(http.StatusOK, map[string]any{
 		"status": "alive",
 	})
 }

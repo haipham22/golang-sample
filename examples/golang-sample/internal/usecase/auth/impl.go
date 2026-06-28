@@ -13,9 +13,9 @@ import (
 
 	apperrors "github.com/haipham22/golang-sample/internal/errors"
 
-	"github.com/haipham22/golang-sample/internal/model"
+	"github.com/haipham22/golang-sample/internal/domain"
 	schemas2 "github.com/haipham22/golang-sample/internal/schemas"
-	"github.com/haipham22/golang-sample/internal/storage/user"
+	"github.com/haipham22/golang-sample/internal/repository/user"
 	"github.com/haipham22/golang-sample/pkg/utils/password"
 )
 
@@ -40,7 +40,7 @@ func NewAuthService(
 	}
 }
 
-func (s *impl) Register(ctx context.Context, req RegisterRequest) (*model.User, error) {
+func (s *impl) Register(ctx context.Context, req RegisterRequest) (*domain.User, error) {
 	usernameExists, emailExists, err := s.storage.CheckUniqueness(ctx, req.Username, req.Email)
 	if err != nil {
 		s.log.Errorf("Failed to check uniqueness: %v", err)
@@ -63,7 +63,7 @@ func (s *impl) Register(ctx context.Context, req RegisterRequest) (*model.User, 
 		return nil, apperrors.WrapCode(apperrors.CodeInternal, err)
 	}
 
-	m := &model.User{
+	m := &domain.User{
 		Username: req.Username,
 		Email:    req.Email,
 	}
@@ -116,7 +116,7 @@ func (s *impl) Login(ctx context.Context, req LoginRequest) (*LoginResponse, err
 	}, nil
 }
 
-func (s *impl) generateToken(user *model.User) (string, time.Time, error) {
+func (s *impl) generateToken(user *domain.User) (string, time.Time, error) {
 	expiresAt := time.Now().Add(s.jwtExpiration)
 
 	claims := schemas2.JwtClaims{

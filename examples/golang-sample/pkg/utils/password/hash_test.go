@@ -167,7 +167,7 @@ func TestCheckPasswordHashWithMultipleHashes(t *testing.T) {
 
 	// Create multiple hashes using MinCost for faster tests
 	hashes := make([]string, 5)
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		hash, err := HashPasswordWithCost(password, bcrypt.MinCost)
 		if err != nil {
 			t.Fatalf("failed to create hash %d: %v", i, err)

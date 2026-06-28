@@ -8,7 +8,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
-	"github.com/haipham22/golang-sample/internal/model"
+	"github.com/haipham22/golang-sample/internal/domain"
 	"github.com/haipham22/golang-sample/internal/orm"
 )
 
@@ -58,7 +58,7 @@ func (s *repo) CheckUniqueness(ctx context.Context, username, email string) (boo
 	return result.UsernameCount > 0, result.EmailCount > 0, nil
 }
 
-func (s *repo) CreateUserWithPassword(ctx context.Context, user *model.User, passwordHash string) (*model.User, error) {
+func (s *repo) CreateUserWithPassword(ctx context.Context, user *domain.User, passwordHash string) (*domain.User, error) {
 	// Convert domain model to ORM
 	ormUser := modelToORM(user)
 	ormUser.PasswordHash = passwordHash
@@ -72,7 +72,7 @@ func (s *repo) CreateUserWithPassword(ctx context.Context, user *model.User, pas
 	return ormToModel(ormUser), nil
 }
 
-func (s *repo) FindUserByUsername(ctx context.Context, username string) (user *model.User, err error) {
+func (s *repo) FindUserByUsername(ctx context.Context, username string) (user *domain.User, err error) {
 	var ormUser *orm.User
 	err = s.db.WithContext(ctx).Where("username = ?", username).First(&ormUser).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
@@ -86,7 +86,7 @@ func (s *repo) FindUserByUsername(ctx context.Context, username string) (user *m
 	return ormToModel(ormUser), nil
 }
 
-func (s *repo) FindUserByUsernameWithPassword(ctx context.Context, username string) (user *model.User, passwordHash string, err error) {
+func (s *repo) FindUserByUsernameWithPassword(ctx context.Context, username string) (user *domain.User, passwordHash string, err error) {
 	var ormUser *orm.User
 	err = s.db.WithContext(ctx).Where("username = ?", username).First(&ormUser).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {

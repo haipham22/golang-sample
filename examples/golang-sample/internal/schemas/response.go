@@ -42,9 +42,9 @@ type ErrResponseBody struct {
 }
 
 type ErrorDetail struct {
-	Msg       string                 `json:"msg"`
-	MsgValues map[string]interface{} `json:"msg_values"`
-	ErrorCode int                    `json:"error_code"`
-	Property  string                 `json:"property"`
-	Detail    string                 `json:"detail"`
+	Msg       string         `json:"msg"`
+	MsgValues map[string]any `json:"msg_values"`
+	ErrorCode int            `json:"error_code"`
+	Property  string         `json:"property"`
+	Detail    string         `json:"detail"`
 }

@@ -15,10 +15,10 @@ import (
 
 	apperrors "github.com/haipham22/golang-sample/internal/errors"
 
+	"github.com/haipham22/golang-sample/internal/domain"
 	serviceMocks "github.com/haipham22/golang-sample/internal/mocks/service"
-	"github.com/haipham22/golang-sample/internal/model"
 	schemas "github.com/haipham22/golang-sample/internal/schemas"
-	authservice "github.com/haipham22/golang-sample/internal/service/auth"
+	authservice "github.com/haipham22/golang-sample/internal/usecase/auth"
 	apiValidator "github.com/haipham22/golang-sample/internal/validator"
 )
 
@@ -28,7 +28,7 @@ func newTestHandler(service *serviceMocks.MockService) *Controller {
 	}
 }
 
-func newEchoContext(method, path string, body interface{}) (echo.Context, *httptest.ResponseRecorder) {
+func newEchoContext(method, path string, body any) (echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
 	e.Validator = apiValidator.NewCustomValidator()
 
@@ -55,7 +55,7 @@ func assertJSONResponse(t *testing.T, rec *httptest.ResponseRecorder, expectedSt
 	body := rec.Body.String()
 	require.NotEmpty(t, body, "Response body should not be empty")
 
-	var jsonBody map[string]interface{}
+	var jsonBody map[string]any
 	err := json.Unmarshal([]byte(body), &jsonBody)
 	require.NoError(t, err, "Response should be valid JSON")
 
@@ -71,7 +71,7 @@ func TestHTTPHandler_PostRegister_Success(t *testing.T) {
 		mockService := serviceMocks.NewMockService(t)
 		mockService.EXPECT().Register(mock.Anything, mock.MatchedBy(func(req authservice.RegisterRequest) bool {
 			return req.Username == "testuser" && req.Email == "test@example.com"
-		})).Return(&model.User{
+		})).Return(&domain.User{
 			ID:       1,
 			Username: "testuser",
 			Email:    "test@example.com",
@@ -128,7 +128,7 @@ func TestHTTPHandler_PostLogin_Success(t *testing.T) {
 			return req.Username == "testuser"
 		})).Return(&authservice.LoginResponse{
 			Token: "mock-jwt-token-12345",
-			User: &model.User{
+			User: &domain.User{
 				ID:       1,
 				Username: "testuser",
 				Email:    "test@example.com",

@@ -6,7 +6,7 @@ package mocks
 
 import (
 	"context"
-	"github.com/haipham22/golang-sample/internal/model"
+	"github.com/haipham22/golang-sample/internal/domain"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -117,26 +117,26 @@ func (_c *MockStorage_CheckUniqueness_Call) RunAndReturn(run func(ctx context.Co
 }
 
 // CreateUserWithPassword provides a mock function for the type MockStorage
-func (_mock *MockStorage) CreateUserWithPassword(ctx context.Context, user *model.User, passwordHash string) (*model.User, error) {
+func (_mock *MockStorage) CreateUserWithPassword(ctx context.Context, user *domain.User, passwordHash string) (*domain.User, error) {
 	ret := _mock.Called(ctx, user, passwordHash)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateUserWithPassword")
 	}
 
-	var r0 *model.User
+	var r0 *domain.User
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *model.User, string) (*model.User, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.User, string) (*domain.User, error)); ok {
 		return returnFunc(ctx, user, passwordHash)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *model.User, string) *model.User); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.User, string) *domain.User); ok {
 		r0 = returnFunc(ctx, user, passwordHash)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.User)
+			r0 = ret.Get(0).(*domain.User)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *model.User, string) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *domain.User, string) error); ok {
 		r1 = returnFunc(ctx, user, passwordHash)
 	} else {
 		r1 = ret.Error(1)
@@ -151,21 +151,21 @@ type MockStorage_CreateUserWithPassword_Call struct {
 
 // CreateUserWithPassword is a helper method to define mock.On call
 //   - ctx context.Context
-//   - user *model.User
+//   - user *domain.User
 //   - passwordHash string
 func (_e *MockStorage_Expecter) CreateUserWithPassword(ctx any, user any, passwordHash any) *MockStorage_CreateUserWithPassword_Call {
 	return &MockStorage_CreateUserWithPassword_Call{Call: _e.mock.On("CreateUserWithPassword", ctx, user, passwordHash)}
 }
 
-func (_c *MockStorage_CreateUserWithPassword_Call) Run(run func(ctx context.Context, user *model.User, passwordHash string)) *MockStorage_CreateUserWithPassword_Call {
+func (_c *MockStorage_CreateUserWithPassword_Call) Run(run func(ctx context.Context, user *domain.User, passwordHash string)) *MockStorage_CreateUserWithPassword_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *model.User
+		var arg1 *domain.User
 		if args[1] != nil {
-			arg1 = args[1].(*model.User)
+			arg1 = args[1].(*domain.User)
 		}
 		var arg2 string
 		if args[2] != nil {
@@ -180,34 +180,34 @@ func (_c *MockStorage_CreateUserWithPassword_Call) Run(run func(ctx context.Cont
 	return _c
 }
 
-func (_c *MockStorage_CreateUserWithPassword_Call) Return(user1 *model.User, err error) *MockStorage_CreateUserWithPassword_Call {
+func (_c *MockStorage_CreateUserWithPassword_Call) Return(user1 *domain.User, err error) *MockStorage_CreateUserWithPassword_Call {
 	_c.Call.Return(user1, err)
 	return _c
 }
 
-func (_c *MockStorage_CreateUserWithPassword_Call) RunAndReturn(run func(ctx context.Context, user *model.User, passwordHash string) (*model.User, error)) *MockStorage_CreateUserWithPassword_Call {
+func (_c *MockStorage_CreateUserWithPassword_Call) RunAndReturn(run func(ctx context.Context, user *domain.User, passwordHash string) (*domain.User, error)) *MockStorage_CreateUserWithPassword_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // FindUserByUsername provides a mock function for the type MockStorage
-func (_mock *MockStorage) FindUserByUsername(ctx context.Context, username string) (*model.User, error) {
+func (_mock *MockStorage) FindUserByUsername(ctx context.Context, username string) (*domain.User, error) {
 	ret := _mock.Called(ctx, username)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindUserByUsername")
 	}
 
-	var r0 *model.User
+	var r0 *domain.User
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*model.User, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*domain.User, error)); ok {
 		return returnFunc(ctx, username)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *model.User); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *domain.User); ok {
 		r0 = returnFunc(ctx, username)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.User)
+			r0 = ret.Get(0).(*domain.User)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
@@ -248,35 +248,35 @@ func (_c *MockStorage_FindUserByUsername_Call) Run(run func(ctx context.Context,
 	return _c
 }
 
-func (_c *MockStorage_FindUserByUsername_Call) Return(user *model.User, err error) *MockStorage_FindUserByUsername_Call {
+func (_c *MockStorage_FindUserByUsername_Call) Return(user *domain.User, err error) *MockStorage_FindUserByUsername_Call {
 	_c.Call.Return(user, err)
 	return _c
 }
 
-func (_c *MockStorage_FindUserByUsername_Call) RunAndReturn(run func(ctx context.Context, username string) (*model.User, error)) *MockStorage_FindUserByUsername_Call {
+func (_c *MockStorage_FindUserByUsername_Call) RunAndReturn(run func(ctx context.Context, username string) (*domain.User, error)) *MockStorage_FindUserByUsername_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // FindUserByUsernameWithPassword provides a mock function for the type MockStorage
-func (_mock *MockStorage) FindUserByUsernameWithPassword(ctx context.Context, username string) (*model.User, string, error) {
+func (_mock *MockStorage) FindUserByUsernameWithPassword(ctx context.Context, username string) (*domain.User, string, error) {
 	ret := _mock.Called(ctx, username)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindUserByUsernameWithPassword")
 	}
 
-	var r0 *model.User
+	var r0 *domain.User
 	var r1 string
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*model.User, string, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*domain.User, string, error)); ok {
 		return returnFunc(ctx, username)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *model.User); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *domain.User); ok {
 		r0 = returnFunc(ctx, username)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.User)
+			r0 = ret.Get(0).(*domain.User)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string) string); ok {
@@ -322,12 +322,12 @@ func (_c *MockStorage_FindUserByUsernameWithPassword_Call) Run(run func(ctx cont
 	return _c
 }
 
-func (_c *MockStorage_FindUserByUsernameWithPassword_Call) Return(user *model.User, passwordHash string, err error) *MockStorage_FindUserByUsernameWithPassword_Call {
+func (_c *MockStorage_FindUserByUsernameWithPassword_Call) Return(user *domain.User, passwordHash string, err error) *MockStorage_FindUserByUsernameWithPassword_Call {
 	_c.Call.Return(user, passwordHash, err)
 	return _c
 }
 
-func (_c *MockStorage_FindUserByUsernameWithPassword_Call) RunAndReturn(run func(ctx context.Context, username string) (*model.User, string, error)) *MockStorage_FindUserByUsernameWithPassword_Call {
+func (_c *MockStorage_FindUserByUsernameWithPassword_Call) RunAndReturn(run func(ctx context.Context, username string) (*domain.User, string, error)) *MockStorage_FindUserByUsernameWithPassword_Call {
 	_c.Call.Return(run)
 	return _c
 }

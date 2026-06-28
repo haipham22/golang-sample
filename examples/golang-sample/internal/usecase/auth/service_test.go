@@ -13,8 +13,8 @@ import (
 
 	apperrors "github.com/haipham22/golang-sample/internal/errors"
 
+	"github.com/haipham22/golang-sample/internal/domain"
 	storageMocks "github.com/haipham22/golang-sample/internal/mocks/storage"
-	"github.com/haipham22/golang-sample/internal/model"
 	"github.com/haipham22/golang-sample/pkg/utils/password"
 )
 
@@ -32,12 +32,12 @@ func newTestService(t *testing.T, storage *storageMocks.MockStorage) Service {
 
 // newMockUser creates a test user with hashed password
 // Following Uber: "Use builder patterns for test data"
-// Returns (model.User, passwordHash) for testing authentication
-func newMockUser(t *testing.T, username, plainPassword string) (*model.User, string) {
+// Returns (domain.User, passwordHash) for testing authentication
+func newMockUser(t *testing.T, username, plainPassword string) (*domain.User, string) {
 	t.Helper()
 	hash, err := password.HashPassword(plainPassword)
 	require.NoError(t, err)
-	return &model.User{
+	return &domain.User{
 		ID:       1,
 		Username: username,
 		Email:    username + "@example.com",
@@ -101,7 +101,7 @@ func TestService_Register_ValidationErrors(t *testing.T) {
 			fullName: "Test User",
 			setupMock: func(m *storageMocks.MockStorage) {
 				m.EXPECT().CheckUniqueness(mock.Anything, "testuser", "test@example.com").Return(false, false, nil)
-				m.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*model.User"), mock.AnythingOfType("string")).Return(nil, assert.AnError)
+				m.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*domain.User"), mock.AnythingOfType("string")).Return(nil, assert.AnError)
 			},
 			wantErrCode: apperrors.CodeInternal,
 			wantErrMsg:  "",
@@ -109,7 +109,6 @@ func TestService_Register_ValidationErrors(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // Following Uber: "capture range variable"
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel() // Following Uber: "use t.Parallel for independent tests"
 
@@ -148,7 +147,7 @@ func TestService_Register_Success(t *testing.T) {
 
 		mockStorage := storageMocks.NewMockStorage(t)
 		mockStorage.EXPECT().CheckUniqueness(mock.Anything, "testuser", "test@example.com").Return(false, false, nil)
-		mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*model.User"), mock.AnythingOfType("string")).RunAndReturn(func(ctx context.Context, user *model.User, passwordHash string) (*model.User, error) {
+		mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*domain.User"), mock.AnythingOfType("string")).RunAndReturn(func(ctx context.Context, user *domain.User, passwordHash string) (*domain.User, error) {
 			// Following Uber: "Verify important invariants in mocks"
 			assert.NotEmpty(t, passwordHash, "password should be hashed")
 			assert.NotEqual(t, "SecurePass123!", passwordHash, "password hash should not equal plaintext")
@@ -172,7 +171,7 @@ func TestService_Register_Success(t *testing.T) {
 		assert.Equal(t, uint(1), gotUser.ID)
 		assert.Equal(t, "testuser", gotUser.Username)
 		assert.Equal(t, "test@example.com", gotUser.Email)
-		// model.User doesn't have PasswordHash field - security by design
+		// domain.User doesn't have PasswordHash field - security by design
 	})
 }
 
@@ -218,7 +217,6 @@ func TestService_Login_Errors(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // Capture range variable
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -270,7 +268,7 @@ func TestService_Login_Success(t *testing.T) {
 		assert.NotEmpty(t, resp.Token, "JWT token should be generated")
 		assert.NotNil(t, resp.User)
 		assert.Equal(t, "testuser", resp.User.Username)
-		// model.User doesn't have PasswordHash field - security by design
+		// domain.User doesn't have PasswordHash field - security by design
 		assert.WithinDuration(t, time.Now().Add(testJWTExpiration), resp.ExpiresAt, 1*time.Second,
 			"expiration should be approximately testJWTExpiration from now")
 
@@ -281,7 +279,7 @@ func TestService_Login_Success(t *testing.T) {
 			Username string
 			jwt.RegisteredClaims
 		}{}
-		token, err := jwt.ParseWithClaims(resp.Token, claims, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(resp.Token, claims, func(token *jwt.Token) (any, error) {
 			return []byte("test-secret"), nil
 		})
 
@@ -330,7 +328,7 @@ func BenchmarkService_Register(b *testing.B) {
 		b.StopTimer()
 		mockStorage := storageMocks.NewMockStorage(b)
 		mockStorage.EXPECT().CheckUniqueness(mock.Anything, "testuser", "test@example.com").Return(false, false, nil)
-		mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*model.User"), mock.AnythingOfType("string")).RunAndReturn(func(ctx context.Context, user *model.User, passwordHash string) (*model.User, error) {
+		mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*domain.User"), mock.AnythingOfType("string")).RunAndReturn(func(ctx context.Context, user *domain.User, passwordHash string) (*domain.User, error) {
 			user.ID = 1
 			return user, nil
 		})
@@ -357,7 +355,7 @@ func BenchmarkService_Login(b *testing.B) {
 		b.StopTimer()
 		hash, _ := password.HashPassword("correctpass")
 		mockStorage := storageMocks.NewMockStorage(b)
-		mockStorage.EXPECT().FindUserByUsernameWithPassword(mock.Anything, "testuser").Return(&model.User{
+		mockStorage.EXPECT().FindUserByUsernameWithPassword(mock.Anything, "testuser").Return(&domain.User{
 			ID:       1,
 			Username: "testuser",
 			Email:    "test@example.com",

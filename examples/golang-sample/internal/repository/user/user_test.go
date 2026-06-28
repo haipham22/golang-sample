@@ -15,8 +15,8 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
+	"github.com/haipham22/golang-sample/internal/domain"
 	storageMocks "github.com/haipham22/golang-sample/internal/mocks/storage"
-	"github.com/haipham22/golang-sample/internal/model"
 	"github.com/haipham22/golang-sample/internal/orm"
 )
 
@@ -77,17 +77,17 @@ func TestStorage_IsExistBy_WithMock(t *testing.T) {
 func TestStorage_CreateUser_WithMock(t *testing.T) {
 	t.Run("successfully creates user", func(t *testing.T) {
 		mockStorage := storageMocks.NewMockStorage(t)
-		expectedUser := &model.User{
+		expectedUser := &domain.User{
 			ID:       1,
 			Username: "newuser",
 			Email:    "newuser@example.com",
 		}
-		mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.MatchedBy(func(u *model.User) bool {
+		mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.MatchedBy(func(u *domain.User) bool {
 			return u.Username == "newuser" && u.Email == "newuser@example.com"
 		}), mock.AnythingOfType("string")).Return(expectedUser, nil)
 
 		ctx := context.Background()
-		user := &model.User{
+		user := &domain.User{
 			Username: "newuser",
 			Email:    "newuser@example.com",
 		}
@@ -103,10 +103,10 @@ func TestStorage_CreateUser_WithMock(t *testing.T) {
 
 	t.Run("returns error on duplicate username", func(t *testing.T) {
 		mockStorage := storageMocks.NewMockStorage(t)
-		mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*model.User"), mock.AnythingOfType("string")).Return(nil, errors.New("UNIQUE constraint failed"))
+		mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*domain.User"), mock.AnythingOfType("string")).Return(nil, errors.New("UNIQUE constraint failed"))
 
 		ctx := context.Background()
-		user := &model.User{
+		user := &domain.User{
 			Username: "existinguser",
 			Email:    "new@example.com",
 		}
@@ -119,10 +119,10 @@ func TestStorage_CreateUser_WithMock(t *testing.T) {
 
 	t.Run("returns error on database failure", func(t *testing.T) {
 		mockStorage := storageMocks.NewMockStorage(t)
-		mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*model.User"), mock.AnythingOfType("string")).Return(nil, sql.ErrConnDone)
+		mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*domain.User"), mock.AnythingOfType("string")).Return(nil, sql.ErrConnDone)
 
 		ctx := context.Background()
-		user := &model.User{
+		user := &domain.User{
 			Username: "testuser",
 			Email:    "test@example.com",
 		}
@@ -138,7 +138,7 @@ func TestStorage_CreateUser_WithMock(t *testing.T) {
 func TestStorage_FindUserByUsername_WithMock(t *testing.T) {
 	t.Run("successfully finds user", func(t *testing.T) {
 		mockStorage := storageMocks.NewMockStorage(t)
-		expectedUser := &model.User{
+		expectedUser := &domain.User{
 			ID:       1,
 			Username: "testuser",
 			Email:    "test@example.com",
@@ -200,12 +200,12 @@ func TestStorage_UserWorkflow_WithMock(t *testing.T) {
 		mockStorage.EXPECT().IsExistBy(mock.Anything, "email", "newuser@example.com").Return(false, nil)
 
 		// Step 3: Create user
-		createdUser := &model.User{
+		createdUser := &domain.User{
 			ID:       1,
 			Username: "newuser",
 			Email:    "newuser@example.com",
 		}
-		mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.MatchedBy(func(u *model.User) bool {
+		mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.MatchedBy(func(u *domain.User) bool {
 			return u.Username == "newuser" && u.Email == "newuser@example.com"
 		}), mock.AnythingOfType("string")).Return(createdUser, nil)
 
@@ -223,7 +223,7 @@ func TestStorage_UserWorkflow_WithMock(t *testing.T) {
 		require.NoError(t, err)
 		assert.False(t, exists)
 
-		user := &model.User{
+		user := &domain.User{
 			Username: "newuser",
 			Email:    "newuser@example.com",
 		}
@@ -409,10 +409,10 @@ func TestStorage_ErrorHandling_WithMock(t *testing.T) {
 
 	t.Run("CreateUser handles duplicate key error", func(t *testing.T) {
 		mockStorage := storageMocks.NewMockStorage(t)
-		mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*model.User"), mock.AnythingOfType("string")).Return(nil, fmt.Errorf("UNIQUE constraint failed: users.username"))
+		mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*domain.User"), mock.AnythingOfType("string")).Return(nil, fmt.Errorf("UNIQUE constraint failed: users.username"))
 
 		ctx := context.Background()
-		user := &model.User{
+		user := &domain.User{
 			Username: "test",
 			Email:    "test@example.com",
 		}
@@ -451,18 +451,18 @@ func BenchmarkStorage_IsExistBy_Mock(b *testing.B) {
 
 func BenchmarkStorage_CreateUser_Mock(b *testing.B) {
 	mockStorage := storageMocks.NewMockStorage(b)
-	user := &model.User{
+	user := &domain.User{
 		ID:       1,
 		Username: "benchuser",
 		Email:    "bench@example.com",
 	}
-	mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*model.User"), mock.AnythingOfType("string")).Return(user, nil).Times(b.N)
+	mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*domain.User"), mock.AnythingOfType("string")).Return(user, nil).Times(b.N)
 
 	ctx := context.Background()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		mockStorage.CreateUserWithPassword(ctx, &model.User{
+		mockStorage.CreateUserWithPassword(ctx, &domain.User{
 			Username: fmt.Sprintf("user%d", i),
 			Email:    fmt.Sprintf("user%d@example.com", i),
 		}, "hash")
@@ -471,7 +471,7 @@ func BenchmarkStorage_CreateUser_Mock(b *testing.B) {
 
 func BenchmarkStorage_FindUserByUsername_Mock(b *testing.B) {
 	mockStorage := storageMocks.NewMockStorage(b)
-	user := &model.User{
+	user := &domain.User{
 		ID:       1,
 		Username: "benchuser",
 		Email:    "bench@example.com",
@@ -518,7 +518,7 @@ func TestStorage_ConcurrentOperations_WithMock(t *testing.T) {
 	}
 
 	mockStorage := storageMocks.NewMockStorage(t)
-	user := &model.User{
+	user := &domain.User{
 		ID:       1,
 		Username: "testuser",
 		Email:    "test@example.com",
@@ -526,14 +526,14 @@ func TestStorage_ConcurrentOperations_WithMock(t *testing.T) {
 
 	// Setup expectations for concurrent calls
 	mockStorage.EXPECT().IsExistBy(mock.Anything, "username", "testuser").Return(false, nil).Times(5)
-	mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*model.User"), mock.AnythingOfType("string")).Return(user, nil).Times(5)
+	mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*domain.User"), mock.AnythingOfType("string")).Return(user, nil).Times(5)
 	mockStorage.EXPECT().FindUserByUsername(mock.Anything, "testuser").Return(user, nil).Times(5)
 
 	ctx := context.Background()
 	done := make(chan bool, 15)
 
 	// Concurrent existence checks
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		go func() {
 			defer func() { done <- true }()
 			mockStorage.IsExistBy(ctx, "username", "testuser")
@@ -541,11 +541,11 @@ func TestStorage_ConcurrentOperations_WithMock(t *testing.T) {
 	}
 
 	// Concurrent creates
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		idx := i
 		go func() {
 			defer func() { done <- true }()
-			mockStorage.CreateUserWithPassword(ctx, &model.User{
+			mockStorage.CreateUserWithPassword(ctx, &domain.User{
 				Username: fmt.Sprintf("user%d", idx),
 				Email:    fmt.Sprintf("user%d@example.com", idx),
 			}, "hash")
@@ -553,7 +553,7 @@ func TestStorage_ConcurrentOperations_WithMock(t *testing.T) {
 	}
 
 	// Concurrent finds
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		go func() {
 			defer func() { done <- true }()
 			mockStorage.FindUserByUsername(ctx, "testuser")
@@ -561,7 +561,7 @@ func TestStorage_ConcurrentOperations_WithMock(t *testing.T) {
 	}
 
 	// Wait for all goroutines
-	for i := 0; i < 15; i++ {
+	for range 15 {
 		<-done
 	}
 }
@@ -672,17 +672,17 @@ func TestStorage_CreateUserTimestamps_WithMock(t *testing.T) {
 	t.Run("created user has timestamps set", func(t *testing.T) {
 		mockStorage := storageMocks.NewMockStorage(t)
 		now := time.Now()
-		expectedUser := &model.User{
+		expectedUser := &domain.User{
 			ID:        1,
 			Username:  "testuser",
 			Email:     "test@example.com",
 			CreatedAt: now,
 			UpdatedAt: now,
 		}
-		mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*model.User"), mock.AnythingOfType("string")).Return(expectedUser, nil)
+		mockStorage.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*domain.User"), mock.AnythingOfType("string")).Return(expectedUser, nil)
 
 		ctx := context.Background()
-		user := &model.User{
+		user := &domain.User{
 			Username: "testuser",
 			Email:    "test@example.com",
 		}
@@ -727,7 +727,7 @@ func TestRepo_IsExistBy_Integration(t *testing.T) {
 	assert.False(t, exists)
 
 	// Create a user
-	user := &model.User{
+	user := &domain.User{
 		Username: "testuser",
 		Email:    "test@example.com",
 	}
@@ -768,7 +768,7 @@ func TestRepo_CreateUser_Integration(t *testing.T) {
 	ctx := context.Background()
 
 	// Test successful creation
-	user := &model.User{
+	user := &domain.User{
 		Username: "newuser",
 		Email:    "newuser@example.com",
 	}
@@ -783,7 +783,7 @@ func TestRepo_CreateUser_Integration(t *testing.T) {
 	assert.False(t, result.UpdatedAt.IsZero())
 
 	// Test duplicate username
-	duplicate := &model.User{
+	duplicate := &domain.User{
 		Username: "newuser",
 		Email:    "different@example.com",
 	}
@@ -791,7 +791,7 @@ func TestRepo_CreateUser_Integration(t *testing.T) {
 	assert.Error(t, err)
 
 	// Test duplicate email
-	duplicate2 := &model.User{
+	duplicate2 := &domain.User{
 		Username: "different",
 		Email:    "newuser@example.com",
 	}
@@ -817,7 +817,7 @@ func TestRepo_FindUserByUsername_Integration(t *testing.T) {
 	ctx := context.Background()
 
 	// Create a test user
-	user := &model.User{
+	user := &domain.User{
 		Username: "testuser",
 		Email:    "test@example.com",
 	}
@@ -860,7 +860,7 @@ func TestRepo_CompleteWorkflow_Integration(t *testing.T) {
 	assert.False(t, exists)
 
 	// Step 2: Create user
-	user := &model.User{
+	user := &domain.User{
 		Username: "workflowuser",
 		Email:    "workflow@example.com",
 	}
