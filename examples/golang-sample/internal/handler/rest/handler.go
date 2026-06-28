@@ -19,6 +19,7 @@ import (
 
 	authctrl "github.com/haipham22/golang-sample/internal/handler/rest/controllers/auth"
 	healthctrl "github.com/haipham22/golang-sample/internal/handler/rest/controllers/health"
+	productctrl "github.com/haipham22/golang-sample/internal/handler/rest/controllers/product"
 	"github.com/haipham22/golang-sample/internal/handler/rest/middlewares"
 	apiValidator "github.com/haipham22/golang-sample/internal/validator"
 )
@@ -28,6 +29,7 @@ func NewHandler(
 	e *echo.Echo,
 	authCtrl *authctrl.Controller,
 	healthCtrl *healthctrl.Controller,
+	productCtrl *productctrl.Controller,
 	port int64,
 	debug bool,
 	env string,
@@ -62,7 +64,7 @@ func NewHandler(
 	e.IPExtractor = echo.ExtractIPFromRealIPHeader()
 
 	// Create an HTTP server
-	e = initRouter(e, authCtrl, healthCtrl)
+	e = initRouter(e, authCtrl, healthCtrl, productCtrl)
 
 	server := governhttp.NewServer(
 		fmt.Sprintf(":%d", port),

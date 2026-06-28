@@ -2,6 +2,7 @@ package rest
 
 import (
 	stderrors "errors"
+	"fmt"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -11,8 +12,12 @@ import (
 
 	authctrl "github.com/haipham22/golang-sample/internal/handler/rest/controllers/auth"
 	healthctrl "github.com/haipham22/golang-sample/internal/handler/rest/controllers/health"
-	authservice "github.com/haipham22/golang-sample/internal/usecase/auth"
+	productctrl "github.com/haipham22/golang-sample/internal/handler/rest/controllers/product"
+	"github.com/haipham22/golang-sample/internal/orm"
+	productRepo "github.com/haipham22/golang-sample/internal/repository/postgres"
 	userRepo "github.com/haipham22/golang-sample/internal/repository/user"
+	authservice "github.com/haipham22/golang-sample/internal/usecase/auth"
+	productservice "github.com/haipham22/golang-sample/internal/usecase/product"
 	"github.com/haipham22/golang-sample/pkg/config"
 	"github.com/haipham22/golang-sample/pkg/postgres"
 )
@@ -43,19 +48,33 @@ func New(
 	}
 
 	// 2. Initialize database (returns cleanup on success).
-	db, cleanup, err := postgres.NewGormDB(appConfig.Postgres.DSN)
+	db, cleanup, err := postgres.NewGormDB(appConfig.Postgres.DSN, appConfig.App.Debug)
 	if err != nil {
 		return nil, nil, err
 	}
 
+	// 2b. Dev/staging schema migration. AutoMigrate runs only outside production
+	// so dev/test get the schema + indexes automatically; production schema
+	// stays externally managed (see .claude/rules/database-rules.md: AutoMigrate
+	// dev-only). On failure, tear down the DB pool we just opened.
+	if appConfig.App.Env != config.EnvProduction {
+		if err := db.AutoMigrate(&orm.User{}, &orm.Product{}); err != nil {
+			cleanup()
+			return nil, nil, fmt.Errorf("auto-migrate schema: %w", err)
+		}
+	}
+
 	// 3. Storage layer.
 	storage := userRepo.New(log, db)
+	productStorage := productRepo.New(log, db)
 
 	// 4. Service layer.
 	authService := authservice.NewAuthService(log, storage, appConfig.API.Secret, jwtExpiration)
+	productService := productservice.NewService(log, productStorage)
 
 	// 5. Controllers.
 	authController := authctrl.New(authService)
+	productController := productctrl.New(productService)
 	healthController := healthctrl.New(db)
 
 	// 6. Echo instance + HTTP server.
@@ -65,6 +84,7 @@ func New(
 		e,
 		authController,
 		healthController,
+		productController,
 		port,
 		appConfig.App.Debug,
 		appConfig.App.Env,

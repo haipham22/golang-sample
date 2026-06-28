@@ -17,7 +17,10 @@ import (
 	apiValidator "github.com/haipham22/golang-sample/internal/validator"
 	authctrl "github.com/haipham22/golang-sample/internal/handler/rest/controllers/auth"
 	healthctrl "github.com/haipham22/golang-sample/internal/handler/rest/controllers/health"
+	productctrl "github.com/haipham22/golang-sample/internal/handler/rest/controllers/product"
 	authservice "github.com/haipham22/golang-sample/internal/usecase/auth"
+	productservice "github.com/haipham22/golang-sample/internal/usecase/product"
+	productRepo "github.com/haipham22/golang-sample/internal/repository/postgres"
 	userRepo "github.com/haipham22/golang-sample/internal/repository/user"
 	"github.com/haipham22/golang-sample/internal/orm"
 )
@@ -39,16 +42,18 @@ func setupTestEngine(t *testing.T) *echo.Echo {
 	sqlDB.SetMaxOpenConns(1) // SQLite shared cache: single conn
 	t.Cleanup(func() { _ = sqlDB.Close() })
 
-	require.NoError(t, db.AutoMigrate(&orm.User{}))
+	require.NoError(t, db.AutoMigrate(&orm.User{}, &orm.Product{}))
 
 	log := zap.NewNop().Sugar()
 	storage := userRepo.New(log, db)
 	svc := authservice.NewAuthService(log, storage, jwtSecretTest, 72*time.Hour)
+	productStorage := productRepo.New(log, db)
+	productSvc := productservice.NewService(log, productStorage)
 
 	e := echo.New()
 	e.Validator = apiValidator.NewCustomValidator()
 	e.HTTPErrorHandler = makeHTTPErrorHandler(log)
-	e = initRouter(e, authctrl.New(svc), healthctrl.New(db))
+	e = initRouter(e, authctrl.New(svc), healthctrl.New(db), productctrl.New(productSvc))
 	return e
 }
 
@@ -121,4 +126,43 @@ func TestIntegration_NotFoundRoute(t *testing.T) {
 	e := setupTestEngine(t)
 	rec := doRequest(e, http.MethodGet, "/no-such-route", "")
 	assert.Equal(t, http.StatusNotFound, rec.Code)
+}
+
+// TestIntegration_ProductsCRUD exercises the product vertical end-to-end
+// (HTTP -> controller -> usecase -> repository -> SQLite): create, get, list,
+// delete, and the not-found path.
+func TestIntegration_ProductsCRUD(t *testing.T) {
+	e := setupTestEngine(t)
+
+	// Create.
+	body := `{"name":"Widget","price":9.99}`
+	rec := doRequest(e, http.MethodPost, "/api/products", body)
+	require.Equal(t, http.StatusCreated, rec.Code)
+	assert.Contains(t, rec.Body.String(), `"name":"Widget"`)
+
+	// List (one item present).
+	rec = doRequest(e, http.MethodGet, "/api/products", "")
+	require.Equal(t, http.StatusOK, rec.Code)
+	assert.Contains(t, rec.Body.String(), `"name":"Widget"`)
+
+	// Get by id (first product -> id 1).
+	rec = doRequest(e, http.MethodGet, "/api/products/1", "")
+	require.Equal(t, http.StatusOK, rec.Code)
+	assert.Contains(t, rec.Body.String(), `"id":1`)
+
+	// Delete -> 204.
+	rec = doRequest(e, http.MethodDelete, "/api/products/1", "")
+	require.Equal(t, http.StatusNoContent, rec.Code)
+
+	// Get after delete -> 404.
+	rec = doRequest(e, http.MethodGet, "/api/products/1", "")
+	assert.Equal(t, http.StatusNotFound, rec.Code)
+}
+
+// TestIntegration_ProductsInvalidInput verifies validation rejects a negative
+// price via the centralized error handler (400 path).
+func TestIntegration_ProductsInvalidInput(t *testing.T) {
+	e := setupTestEngine(t)
+	rec := doRequest(e, http.MethodPost, "/api/products", `{"name":"X","price":-1}`)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
 }
