@@ -490,10 +490,10 @@ domain/repository.go       → ❌ WRONG: Don't define interfaces in domain
 **Directory Migration** (Phase 03):
 ```
 Current                            → Target
-internal/model/                   → internal/domain/ (flat: user.go, product.go, errors.go)
-internal/storage/                 → internal/usecase/ (repository interfaces defined here)
+internal/domain/                   → internal/domain/ (flat: user.go, product.go, errors.go)
+internal/repository/                 → internal/usecase/ (repository interfaces defined here)
 internal/orm/                     → internal/repository/postgres/ (implementations)
-internal/service/auth/           → internal/usecase/auth/ (service.go + impl.go + dto.go)
+internal/usecase/auth/           → internal/usecase/auth/ (service.go + impl.go + dto.go)
 internal/schemas/                → internal/usecase/auth/dto.go (validation)
 internal/validator/              → internal/usecase/auth/dto.go (merged)
 ```
@@ -572,7 +572,7 @@ internal/validator/              → internal/usecase/auth/dto.go (merged)
 | Phase | Files Modified | Files Created | Files Deleted | Owner |
 |-------|----------------|---------------|---------------|-------|
 | Phase 08 | examples/golang-sample/go.mod, mise.toml | validation scripts, baseline reports | None | planner |
-| Phase 09 | examples/golang-sample/internal/model/errors.go | examples/golang-sample/internal/errors/* | None | planner |
+| Phase 09 | examples/golang-sample/internal/domain/errors.go | examples/golang-sample/internal/errors/* | None | planner |
 | Phase 10 | examples/golang-sample/internal/handler/rest/*.go | examples/golang-sample/internal/errors/{helpers,response,logging}.go | None | planner |
 | Phase 11 | examples/golang-sample/internal/handler/rest/*.go | examples/golang-sample/internal/bootstrap/* | examples/golang-sample/internal/handler/rest/wire.go, wire_gen.go | planner |
 | Phase 12 | examples/golang-sample/cmd/serverd.go | None | None | planner |
