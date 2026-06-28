@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	governerrors "github.com/haipham22/govern/errors"
+	apperrors "github.com/haipham22/golang-sample/internal/errors"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -98,7 +98,7 @@ func TestHTTPHandler_PostRegister_Conflict(t *testing.T) {
 	t.Run("returns conflict error when username exists", func(t *testing.T) {
 		mockService := serviceMocks.NewMockService(t)
 		mockService.EXPECT().Register(mock.Anything, mock.AnythingOfType("auth.RegisterRequest")).
-			Return(nil, governerrors.NewCode(governerrors.CodeConflict, "username already exists"))
+			Return(nil, apperrors.NewCode(apperrors.CodeConflict, "username already exists"))
 
 		handler := newTestHandler(mockService)
 
@@ -113,9 +113,9 @@ func TestHTTPHandler_PostRegister_Conflict(t *testing.T) {
 		err := handler.PostRegister(c)
 
 		require.Error(t, err)
-		code, ok := governerrors.GetCode(err)
+		code, ok := apperrors.GetCode(err)
 		assert.True(t, ok)
-		assert.Equal(t, governerrors.CodeConflict, code)
+		assert.Equal(t, apperrors.CodeConflict, code)
 	})
 }
 
@@ -154,7 +154,7 @@ func TestHTTPHandler_PostLogin_Unauthorized(t *testing.T) {
 	t.Run("returns unauthorized error for invalid credentials", func(t *testing.T) {
 		mockService := serviceMocks.NewMockService(t)
 		mockService.EXPECT().Login(mock.Anything, mock.AnythingOfType("auth.LoginRequest")).
-			Return(nil, governerrors.ErrUnauthorized)
+			Return(nil, apperrors.ErrUnauthorized)
 
 		handler := newTestHandler(mockService)
 
@@ -167,8 +167,8 @@ func TestHTTPHandler_PostLogin_Unauthorized(t *testing.T) {
 		err := handler.PostLogin(c)
 
 		require.Error(t, err)
-		code, ok := governerrors.GetCode(err)
+		code, ok := apperrors.GetCode(err)
 		assert.True(t, ok)
-		assert.Equal(t, governerrors.CodeUnauthorized, code)
+		assert.Equal(t, apperrors.CodeUnauthorized, code)
 	})
 }

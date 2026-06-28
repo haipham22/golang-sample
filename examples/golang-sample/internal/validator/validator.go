@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	validatePkg "github.com/go-playground/validator/v10"
-	governerrors "github.com/haipham22/govern/errors"
+	apperrors "github.com/haipham22/golang-sample/internal/errors"
 
 	"github.com/haipham22/golang-sample/internal/schemas"
 )
@@ -28,7 +28,7 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 				Msg:      "Validation failed for field: " + property,
 			}
 			// Wrap the validation error with govern code and include detail in message
-			return governerrors.WrapCode(governerrors.CodeInvalid,
+			return apperrors.WrapCode(apperrors.CodeInvalid,
 				&ValidationError{Detail: detail})
 		}
 	}

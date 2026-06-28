@@ -32,7 +32,8 @@ WIRE=$(grep -rl "google/wire" --include="*.go" . 2>/dev/null | grep -v 'wire_gen
 if [ -z "$WIRE" ]; then ok "no google/wire imports"; else fail "google/wire still imported: $WIRE"; fi
 
 echo "== govern/errors removal check =="
-ERR=$(grep -rl "govern/errors" --include="*.go" . 2>/dev/null || true)
-if [ -z "$ERR" ]; then ok "no govern/errors imports"; else echo "  (pre-Phase 09) govern/errors in: $ERR"; fi
+# Match only actual import paths (quoted), not prose mentions in comments.
+ERR=$(grep -rn '"github.com/haipham22/govern/errors"' --include="*.go" . 2>/dev/null || true)
+if [ -z "$ERR" ]; then ok "no govern/errors imports"; else fail "govern/errors imported: $ERR"; fi
 
 exit $PASS

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	governerrors "github.com/haipham22/govern/errors"
+	apperrors "github.com/haipham22/golang-sample/internal/errors"
 	"gorm.io/gorm"
 	"go.uber.org/zap"
 
@@ -43,23 +43,23 @@ func (s *impl) Register(ctx context.Context, req RegisterRequest) (*model.User, 
 	usernameExists, emailExists, err := s.storage.CheckUniqueness(ctx, req.Username, req.Email)
 	if err != nil {
 		s.log.Errorf("Failed to check uniqueness: %v", err)
-		return nil, governerrors.WrapCode(governerrors.CodeInternal, err)
+		return nil, apperrors.WrapCode(apperrors.CodeInternal, err)
 	}
 
 	if usernameExists {
 		s.log.Warnf("Registration attempted with existing username")
-		return nil, governerrors.NewCode(governerrors.CodeConflict, "username already exists")
+		return nil, apperrors.NewCode(apperrors.CodeConflict, "username already exists")
 	}
 
 	if emailExists {
 		s.log.Warnf("Registration attempted with existing email")
-		return nil, governerrors.NewCode(governerrors.CodeConflict, "email already exists")
+		return nil, apperrors.NewCode(apperrors.CodeConflict, "email already exists")
 	}
 
 	hashedPassword, err := password.HashPassword(req.Password)
 	if err != nil {
 		s.log.Errorf("Failed to hash password: %v", err)
-		return nil, governerrors.WrapCode(governerrors.CodeInternal, err)
+		return nil, apperrors.WrapCode(apperrors.CodeInternal, err)
 	}
 
 	m := &model.User{
@@ -74,10 +74,10 @@ func (s *impl) Register(ctx context.Context, req RegisterRequest) (*model.User, 
 		if errors.Is(err, gorm.ErrDuplicatedKey) ||
 			strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			s.log.Warnf("User creation failed due to duplicate (race condition)")
-			return nil, governerrors.NewCode(governerrors.CodeConflict, "username or email already exists")
+			return nil, apperrors.NewCode(apperrors.CodeConflict, "username or email already exists")
 		}
 		s.log.Errorf("Failed to create user: %v", err)
-		return nil, governerrors.WrapCode(governerrors.CodeInternal, err)
+		return nil, apperrors.WrapCode(apperrors.CodeInternal, err)
 	}
 
 	s.log.Infof("User registered successfully: ID=%d", createdUser.ID)
@@ -88,23 +88,23 @@ func (s *impl) Login(ctx context.Context, req LoginRequest) (*LoginResponse, err
 	account, passwordHash, err := s.storage.FindUserByUsernameWithPassword(ctx, req.Username)
 	if err != nil {
 		s.log.Errorf("Failed to find account by username: %v", err)
-		return nil, governerrors.WrapCode(governerrors.CodeInternal, err)
+		return nil, apperrors.WrapCode(apperrors.CodeInternal, err)
 	}
 
 	if account == nil {
 		s.log.Warnf("Login attempted with non-existent username")
-		return nil, governerrors.ErrUnauthorized
+		return nil, apperrors.ErrUnauthorized
 	}
 
 	if !password.CheckPasswordHash(req.Password, passwordHash) {
 		s.log.Warnf("Login attempted with invalid password")
-		return nil, governerrors.ErrUnauthorized
+		return nil, apperrors.ErrUnauthorized
 	}
 
 	token, expiresAt, err := s.generateToken(account)
 	if err != nil {
 		s.log.Errorf("Failed to generate token: %v", err)
-		return nil, governerrors.WrapCode(governerrors.CodeInternal, err)
+		return nil, apperrors.WrapCode(apperrors.CodeInternal, err)
 	}
 
 	s.log.Infof("User logged in successfully: %s", account.Username)

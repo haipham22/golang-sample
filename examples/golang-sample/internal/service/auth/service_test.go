@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	governerrors "github.com/haipham22/govern/errors"
+	apperrors "github.com/haipham22/golang-sample/internal/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -53,7 +53,7 @@ func TestService_Register_ValidationErrors(t *testing.T) {
 		password    string
 		fullName    string
 		setupMock   func(*storageMocks.MockStorage)
-		wantErrCode governerrors.ErrorCode
+		wantErrCode apperrors.Code
 		wantErrMsg  string
 	}{
 		{
@@ -65,7 +65,7 @@ func TestService_Register_ValidationErrors(t *testing.T) {
 			setupMock: func(m *storageMocks.MockStorage) {
 				m.EXPECT().CheckUniqueness(mock.Anything, "existinguser", "new@example.com").Return(true, false, nil)
 			},
-			wantErrCode: governerrors.CodeConflict,
+			wantErrCode: apperrors.CodeConflict,
 			wantErrMsg:  "username",
 		},
 		{
@@ -77,7 +77,7 @@ func TestService_Register_ValidationErrors(t *testing.T) {
 			setupMock: func(m *storageMocks.MockStorage) {
 				m.EXPECT().CheckUniqueness(mock.Anything, "newuser", "existing@example.com").Return(false, true, nil)
 			},
-			wantErrCode: governerrors.CodeConflict,
+			wantErrCode: apperrors.CodeConflict,
 			wantErrMsg:  "email",
 		},
 		{
@@ -89,7 +89,7 @@ func TestService_Register_ValidationErrors(t *testing.T) {
 			setupMock: func(m *storageMocks.MockStorage) {
 				m.EXPECT().CheckUniqueness(mock.Anything, "testuser", "test@example.com").Return(false, false, assert.AnError)
 			},
-			wantErrCode: governerrors.CodeInternal,
+			wantErrCode: apperrors.CodeInternal,
 			wantErrMsg:  "",
 		},
 		{
@@ -102,7 +102,7 @@ func TestService_Register_ValidationErrors(t *testing.T) {
 				m.EXPECT().CheckUniqueness(mock.Anything, "testuser", "test@example.com").Return(false, false, nil)
 				m.EXPECT().CreateUserWithPassword(mock.Anything, mock.AnythingOfType("*model.User"), mock.AnythingOfType("string")).Return(nil, assert.AnError)
 			},
-			wantErrCode: governerrors.CodeInternal,
+			wantErrCode: apperrors.CodeInternal,
 			wantErrMsg:  "",
 		},
 	}
@@ -129,8 +129,8 @@ func TestService_Register_ValidationErrors(t *testing.T) {
 			assert.Error(t, err)
 			assert.Nil(t, user)
 
-			if tt.wantErrCode != governerrors.CodeInternal {
-				var govErr *governerrors.ErrorWithCode
+			if tt.wantErrCode != apperrors.CodeInternal {
+				var govErr *apperrors.Error
 				assert.ErrorAs(t, err, &govErr)
 				assert.Equal(t, tt.wantErrCode, govErr.Code)
 				if tt.wantErrMsg != "" {
@@ -193,7 +193,7 @@ func TestService_Login_Errors(t *testing.T) {
 			setupMock: func(m *storageMocks.MockStorage) {
 				m.EXPECT().FindUserByUsernameWithPassword(mock.Anything, "nonexistent").Return(nil, "", nil)
 			},
-			wantErr: governerrors.ErrUnauthorized,
+			wantErr: apperrors.ErrUnauthorized,
 		},
 		{
 			name:     "invalid password",
@@ -203,7 +203,7 @@ func TestService_Login_Errors(t *testing.T) {
 				mockUser, passwordHash := newMockUser(t, "testuser", "correctpass")
 				m.EXPECT().FindUserByUsernameWithPassword(mock.Anything, "testuser").Return(mockUser, passwordHash, nil)
 			},
-			wantErr: governerrors.ErrUnauthorized,
+			wantErr: apperrors.ErrUnauthorized,
 		},
 		{
 			name:     "storage error",
@@ -239,9 +239,9 @@ func TestService_Login_Errors(t *testing.T) {
 				assert.Equal(t, tt.wantErr, err)
 			} else {
 				// Service wraps storage errors in ErrorWithCode
-				var govErr *governerrors.ErrorWithCode
+				var govErr *apperrors.Error
 				assert.ErrorAs(t, err, &govErr)
-				assert.Equal(t, governerrors.CodeInternal, govErr.Code)
+				assert.Equal(t, apperrors.CodeInternal, govErr.Code)
 			}
 		})
 	}

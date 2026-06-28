@@ -3,7 +3,7 @@ package auth
 import (
 	"net/http"
 
-	governerrors "github.com/haipham22/govern/errors"
+	apperrors "github.com/haipham22/golang-sample/internal/errors"
 	"github.com/labstack/echo/v4"
 
 	schemas "github.com/haipham22/golang-sample/internal/schemas"
@@ -36,7 +36,7 @@ func (h *Controller) PostRegister(c echo.Context) error {
 	var req schemas.UserRegisterRequest
 
 	if err := c.Bind(&req); err != nil {
-		return governerrors.WrapCode(governerrors.CodeInvalid, err)
+		return apperrors.WrapCode(apperrors.CodeInvalid, err)
 	}
 
 	// Call service - returns domain model
@@ -73,7 +73,7 @@ func (h *Controller) PostLogin(c echo.Context) error {
 	var req schemas.LoginRequest
 
 	if err := c.Bind(&req); err != nil {
-		return governerrors.WrapCode(governerrors.CodeInvalid, err)
+		return apperrors.WrapCode(apperrors.CodeInvalid, err)
 	}
 
 	// Call service - returns domain model

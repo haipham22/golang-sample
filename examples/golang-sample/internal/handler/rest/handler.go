@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	governerrors "github.com/haipham22/govern/errors"
+	apperrors "github.com/haipham22/golang-sample/internal/errors"
 	governhttp "github.com/haipham22/govern/http"
 	httpEcho "github.com/haipham22/govern/http/echo"
 	"github.com/haipham22/govern/http/middleware"
@@ -55,7 +55,7 @@ func NewHandler(
 		httpEcho.WithSwaggerPath("/docs/*"),
 	)
 
-	e.HTTPErrorHandler = customHTTPErrorHandler
+	e.HTTPErrorHandler = makeHTTPErrorHandler(log)
 
 	e.IPExtractor = echo.ExtractIPFromRealIPHeader()
 
@@ -72,139 +72,73 @@ func NewHandler(
 	return server
 }
 
-// customHTTPErrorHandler handles errors with govern error code support
-func customHTTPErrorHandler(err error, c echo.Context) {
-	code := http.StatusInternalServerError
-	var responseBody interface{}
+// makeHTTPErrorHandler returns an Echo HTTP error handler that maps errors to a
+// standardized JSON response (apperrors.Response) with sanitized client
+// messages, request-ID propagation, and structured logging via the injected
+// logger (replacing the previous global-zap switch handler).
+func makeHTTPErrorHandler(log *zap.SugaredLogger) echo.HTTPErrorHandler {
+	return func(err error, c echo.Context) {
+		path := c.Path()
+		requestID := c.Response().Header().Get(echo.HeaderXRequestID)
 
-	// Check govern error codes first
-	if errCode, ok := governerrors.GetCode(err); ok {
-		switch errCode {
-		case governerrors.CodeInvalid:
-			code = http.StatusBadRequest
-			// Try to extract validation error details
-			responseBody = buildValidationErrorResponse(err, c.Path())
-		case governerrors.CodeNotFound:
-			code = http.StatusNotFound
-			responseBody = map[string]interface{}{
-				"msg":   "Resource not found",
-				"error": "Resource not found",
-				"path":  c.Path(),
-			}
-		case governerrors.CodeUnauthorized:
-			code = http.StatusUnauthorized
-			responseBody = map[string]interface{}{
-				"msg":   "Unauthorized",
-				"error": "Unauthorized",
-				"path":  c.Path(),
-			}
-		case governerrors.CodeForbidden:
-			code = http.StatusForbidden
-			responseBody = map[string]interface{}{
-				"msg":   "Forbidden",
-				"error": "Forbidden",
-				"path":  c.Path(),
-			}
-		case governerrors.CodeConflict:
-			code = http.StatusConflict
-			responseBody = map[string]interface{}{
-				"msg":   "Resource already exists",
-				"error": "conflict occurred",
-				"path":  c.Path(),
-			}
-		case governerrors.CodeInternal:
-			code = http.StatusInternalServerError
-			responseBody = map[string]interface{}{
-				"msg":   "Internal Server Error",
-				"error": "Internal Server Error",
-				"path":  c.Path(),
-			}
-		default:
-			// Log unknown error codes
-			zap.L().Error("Unknown error code in error handler",
-				zap.String("code", string(errCode)),
-				zap.String("path", c.Path()),
-				zap.Error(err))
-			code = http.StatusInternalServerError
-			responseBody = map[string]interface{}{
-				"msg":   "Internal Server Error",
-				"error": "Internal Server Error",
-				"path":  c.Path(),
-			}
+		status, body := resolveError(err, path, requestID)
+
+		apperrors.LogRequestError(log, err, path, status)
+
+		if !c.Response().Committed {
+			_ = c.JSON(status, body)
 		}
-	} else if he, ok := err.(*echo.HTTPError); ok {
-		code = he.Code
-
-		// Sanitize 5xx error messages to avoid leaking internal details
-		var clientMsg string
-		if code >= 500 {
-			clientMsg = "Internal Server Error"
-			// Log the actual internal error message (safe to log internally)
-			zap.L().Error("HTTPError (5xx)",
-				zap.Int("status", code),
-				zap.String("path", c.Path()),
-				zap.String("internal_message", fmt.Sprintf("%v", he.Message)),
-			)
-		} else {
-			clientMsg = fmt.Sprintf("%v", he.Message)
-		}
-
-		responseBody = map[string]interface{}{
-			"msg":   clientMsg,
-			"error": clientMsg,
-			"path":  c.Path(),
-		}
-	} else if err != nil {
-		code = http.StatusInternalServerError
-		responseBody = map[string]interface{}{
-			"msg":   "Internal Server Error",
-			"error": "Internal Server Error",
-			"path":  c.Path(),
-		}
-	}
-
-	// Log error (avoid raw conflict errors which may leak info)
-	if errCode, ok := governerrors.GetCode(err); ok && errCode == governerrors.CodeConflict {
-		zap.L().Warn("Request error: conflict",
-			zap.String("path", c.Path()),
-			zap.Int("status", code),
-		)
-	} else {
-		zap.L().Error("Request error",
-			zap.String("path", c.Path()),
-			zap.Int("status", code),
-			zap.Error(err),
-		)
-	}
-
-	// Send response
-	if !c.Response().Committed {
-		c.JSON(code, responseBody)
 	}
 }
 
-// buildValidationErrorResponse builds a detailed validation error response
-func buildValidationErrorResponse(err error, path string) map[string]interface{} {
-	// Try to unwrap and find ValidationError
-	var validationErr *apiValidator.ValidationError
-	if errors.As(err, &validationErr) {
-		return map[string]interface{}{
-			"msg":   validationErr.Detail.Msg,
-			"error": validationErr.Detail.Msg,
-			"errors": []map[string]interface{}{
-				{
-					"property": validationErr.Detail.Property,
-					"msg":      validationErr.Detail.Msg,
-				},
-			},
-			"path": path,
+// resolveError maps an error to an HTTP status and a standard response body.
+// Order: apperrors-typed errors use centralized resolution (with validation
+// detail enrichment), echo.HTTPError values are sanitized, everything else is
+// a generic 500.
+func resolveError(err error, path, requestID string) (int, apperrors.Response) {
+	// 1. apperrors-typed error: centralized status + body mapping.
+	if code, ok := apperrors.GetCode(err); ok {
+		status, body := apperrors.Resolve(err, path, requestID)
+		if code == apperrors.CodeInvalid {
+			enrichValidation(&body, err)
+		}
+		return status, body
+	}
+
+	// 2. Echo HTTP error: pass through status, sanitize 5xx messages.
+	if he, ok := err.(*echo.HTTPError); ok {
+		clientMsg := he.Message
+		if he.Code >= 500 {
+			clientMsg = http.StatusText(http.StatusInternalServerError)
+		}
+		msg := fmt.Sprintf("%v", clientMsg)
+		return he.Code, apperrors.Response{
+			Msg:       msg,
+			Error:     msg,
+			Path:      path,
+			RequestID: requestID,
 		}
 	}
 
-	// Fallback to generic error message for security
-	return map[string]interface{}{
-		"msg":   "invalid request parameters",
-		"error": "invalid request parameters",
-		"path":  path,
+	// 3. Unknown error: generic internal server error.
+	return http.StatusInternalServerError, apperrors.Response{
+		Msg:       http.StatusText(http.StatusInternalServerError),
+		Error:     http.StatusText(http.StatusInternalServerError),
+		Path:      path,
+		RequestID: requestID,
+	}
+}
+
+// enrichValidation fills in field-level details when err wraps a
+// validator.ValidationError; otherwise leaves the generic invalid-input body.
+func enrichValidation(body *apperrors.Response, err error) {
+	var validationErr *apiValidator.ValidationError
+	if errors.As(err, &validationErr) {
+		body.Msg = validationErr.Detail.Msg
+		body.Error = validationErr.Detail.Msg
+		body.Errors = []apperrors.FieldError{{
+			Property: validationErr.Detail.Property,
+			Msg:      validationErr.Detail.Msg,
+		}}
 	}
 }
