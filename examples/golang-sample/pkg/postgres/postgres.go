@@ -18,13 +18,16 @@ type Config struct {
 	MaxIdleTime  time.Duration
 }
 
-// NewGormDB creates a new gorm postgresql with connection pooling
+// NewGormDB creates a new gorm postgresql with connection pooling. The debug
+// flag toggles GORM query logging — wire it to APP_DEBUG so production stays
+// quiet instead of logging every query.
 func NewGormDB(
 	pgDSN string,
+	debug bool,
 ) (*gorm.DB, func(), error) {
 	return New(Config{
 		DSN:          pgDSN,
-		Debug:        true,
+		Debug:        debug,
 		MaxIdleConns: 10,
 		MaxOpenConns: 100,
 		MaxLifetime:  time.Hour,

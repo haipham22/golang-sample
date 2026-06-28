@@ -2,13 +2,14 @@ package user
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
 	"github.com/haipham22/golang-sample/internal/domain"
+	apperrors "github.com/haipham22/golang-sample/internal/errors"
 	"github.com/haipham22/golang-sample/internal/orm"
 )
 
@@ -22,7 +23,7 @@ func (s *repo) IsExistBy(ctx context.Context, field string, condition string) (b
 
 	if !allowedColumns[field] {
 		s.log.Errorf("Invalid field name for existence check: %s", field)
-		return false, fmt.Errorf("invalid field name: %s", field)
+		return false, apperrors.InvalidInput(fmt.Sprintf("invalid field name: %s", field))
 	}
 
 	// Check if the field exists in the database
@@ -30,7 +31,7 @@ func (s *repo) IsExistBy(ctx context.Context, field string, condition string) (b
 	query := fmt.Sprintf("%s = ?", field)
 	if err := s.db.WithContext(ctx).Model(&orm.User{}).Where(query, condition).Count(&count).Error; err != nil {
 		s.log.Errorf("Failed to check if %s exists, err: %#v", field, zap.Error(err))
-		return false, err
+		return false, apperrors.WrapCode(apperrors.CodeInternal, err)
 	}
 	return count > 0, nil
 }
@@ -52,7 +53,7 @@ func (s *repo) CheckUniqueness(ctx context.Context, username, email string) (boo
 
 	if err != nil {
 		s.log.Errorf("Failed to check uniqueness, err: %#v", zap.Error(err))
-		return false, false, err
+		return false, false, apperrors.WrapCode(apperrors.CodeInternal, err)
 	}
 
 	return result.UsernameCount > 0, result.EmailCount > 0, nil
@@ -64,8 +65,11 @@ func (s *repo) CreateUserWithPassword(ctx context.Context, user *domain.User, pa
 	ormUser.PasswordHash = passwordHash
 
 	if err := s.db.WithContext(ctx).Create(&ormUser).Error; err != nil {
+		// Wrap as Internal but preserve the underlying error chain so the
+		// service layer can still detect duplicate-key race conditions via
+		// errors.Is(err, gorm.ErrDuplicatedKey) / message inspection.
 		s.log.Errorf("Failed to create user, err: %#v", zap.Error(err))
-		return nil, err
+		return nil, apperrors.WrapCode(apperrors.CodeInternal, err)
 	}
 
 	// Convert back to domain model (without password)
@@ -76,10 +80,12 @@ func (s *repo) FindUserByUsername(ctx context.Context, username string) (user *d
 	var ormUser *orm.User
 	err = s.db.WithContext(ctx).Where("username = ?", username).First(&ormUser).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		// Not-found is surfaced as (nil, nil); the caller distinguishes via the
+		// returned user pointer rather than an error code.
 		return nil, nil
 	}
 	if err != nil {
-		return nil, err
+		return nil, apperrors.WrapCode(apperrors.CodeInternal, err)
 	}
 
 	// Convert ORM to domain model
@@ -93,7 +99,7 @@ func (s *repo) FindUserByUsernameWithPassword(ctx context.Context, username stri
 		return nil, "", nil
 	}
 	if err != nil {
-		return nil, "", err
+		return nil, "", apperrors.WrapCode(apperrors.CodeInternal, err)
 	}
 
 	// Convert ORM to domain model

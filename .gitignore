@@ -176,3 +176,7 @@ log/bin/
 metrics/bin/
 mq/bin/
 retry/bin/
+
+# Temp probe binaries
+tmp_probe
+/tmp/

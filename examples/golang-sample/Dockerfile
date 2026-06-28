@@ -1,5 +1,5 @@
 # Build arguments for easier maintenance
-ARG GO_VERSION=1.25
+ARG GO_VERSION=1.26
 ARG DEBIAN_VERSION=bookworm
 ARG APP_NAME=golang-sample
 ARG WORK_DIR=/app

@@ -51,7 +51,7 @@ Example:
 		// Load config at composition root
 		cfg := config.ENV
 
-		app, cleanup, err := bootstrap.New(bootstrap.Config{Port: port, AppConfig: cfg})
+		server, cleanup, err := bootstrap.New(bootstrap.Config{Port: port, AppConfig: cfg})
 		if err != nil {
 			return err
 		}
@@ -66,7 +66,7 @@ Example:
 			ctx,
 			log,
 			time.Duration(shutdownTime)*time.Second,
-			app.HTTPServer,
+			server,
 		)
 
 		return err
