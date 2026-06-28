@@ -3,8 +3,9 @@ package auth
 import (
 	"net/http"
 
-	apperrors "github.com/haipham22/golang-sample/internal/errors"
 	"github.com/labstack/echo/v4"
+
+	apperrors "github.com/haipham22/golang-sample/internal/errors"
 
 	schemas "github.com/haipham22/golang-sample/internal/schemas"
 	authservice "github.com/haipham22/golang-sample/internal/service/auth"

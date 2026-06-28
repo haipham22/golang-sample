@@ -3,17 +3,19 @@ package rest
 import (
 	"errors"
 	"fmt"
-	"github.com/haipham22/golang-sample/pkg/config"
 	"net/http"
 	"time"
+
+	"github.com/haipham22/golang-sample/pkg/config"
+
+	"github.com/labstack/echo/v4"
+	echomiddleware "github.com/labstack/echo/v4/middleware"
+	"go.uber.org/zap"
 
 	apperrors "github.com/haipham22/golang-sample/internal/errors"
 	governhttp "github.com/haipham22/govern/http"
 	httpEcho "github.com/haipham22/govern/http/echo"
 	"github.com/haipham22/govern/http/middleware"
-	"github.com/labstack/echo/v4"
-	echomiddleware "github.com/labstack/echo/v4/middleware"
-	"go.uber.org/zap"
 
 	authctrl "github.com/haipham22/golang-sample/internal/handler/rest/controllers/auth"
 	healthctrl "github.com/haipham22/golang-sample/internal/handler/rest/controllers/health"
@@ -86,7 +88,7 @@ func makeHTTPErrorHandler(log *zap.SugaredLogger) echo.HTTPErrorHandler {
 		apperrors.LogRequestError(log, err, path, status)
 
 		if !c.Response().Committed {
-			_ = c.JSON(status, body)
+			c.JSON(status, body)
 		}
 	}
 }

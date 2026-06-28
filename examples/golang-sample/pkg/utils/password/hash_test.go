@@ -41,7 +41,7 @@ func TestHashPassword(t *testing.T) {
 		{
 			name:        "password exceeding 72 bytes (bcrypt limit)",
 			password:    strings.Repeat("a", 100), // 100 bytes, exceeds bcrypt limit
-			expectError: true, // modern bcrypt returns error for >72 bytes
+			expectError: true,                     // modern bcrypt returns error for >72 bytes
 		},
 	}
 

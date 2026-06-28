@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	validatePkg "github.com/go-playground/validator/v10"
+
 	apperrors "github.com/haipham22/golang-sample/internal/errors"
 
 	"github.com/haipham22/golang-sample/internal/schemas"

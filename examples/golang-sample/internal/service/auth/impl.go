@@ -8,9 +8,10 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	apperrors "github.com/haipham22/golang-sample/internal/errors"
-	"gorm.io/gorm"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
+
+	apperrors "github.com/haipham22/golang-sample/internal/errors"
 
 	"github.com/haipham22/golang-sample/internal/model"
 	schemas2 "github.com/haipham22/golang-sample/internal/schemas"

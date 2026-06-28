@@ -15,10 +15,10 @@ import (
 // TestResolveError_AppErrors verifies centralized code -> status/body mapping.
 func TestResolveError_AppErrors(t *testing.T) {
 	cases := []struct {
-		name      string
-		err       error
-		wantStat  int
-		wantMsg   string
+		name     string
+		err      error
+		wantStat int
+		wantMsg  string
 	}{
 		{"invalid", apperrors.NewCode(apperrors.CodeInvalid, "bad"), http.StatusBadRequest, "invalid request parameters"},
 		{"not found", apperrors.NewCode(apperrors.CodeNotFound, "x"), http.StatusNotFound, "Resource not found"},

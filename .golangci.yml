@@ -1,92 +1,74 @@
+version: "2"
+
 run:
   timeout: 5m
-  skip-dirs:
-    - vendor
-    - testdata
-    - generated
-  skip-files:
-    - ".*\\.gen\\.go$"
-    - "wire_gen\\.go"
 
 linters:
-  disable-all: true
+  default: none
   enable:
     - govet
     - errcheck
     - staticcheck
     - unused
+    - gosec
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    gosec:
+      includes:
+        - G101 # Look for hard coded credentials
+        - G102 # Bind to all interfaces
+        - G103 # Audit the use of unsafe block
+        - G104 # Audit errors not checked
+        - G107 # Url provided to HTTP request as taint input
+        - G108 # Profiling endpoint exposed on /debug/pprof
+        - G109 # Convert String to Int with strconv.Atoi
+        - G110 # Potential DoS via decompression bomb
+        - G111 # Potential directory traversal
+        - G201 # SQL query construction using format string
+        - G202 # SQL query construction using string concatenation
+        - G203 # Use of unescaped data in HTML templates
+        - G204 # Audit use of command execution
+        - G301 # Poor file permissions when creating a directory
+        - G302 # Poor file permissions with chmod
+        - G303 # Creating tempfile using a predictable path
+        - G304 # File path provided as taint input
+        - G306 # Poor file permissions when writing to a new file
+        - G307 # Deferring a method which returns an error
+        - G401 # Detect usage of DES, RC4, MD5 or SHA1
+        - G402 # Look for bad TLS connection settings
+        - G403 # Ensure minimum RSA key length of 2048 bits
+        - G404 # Insecure random number source (rand)
+        - G405 # Minimize the use of exec.Command
+        - G501 # Import blocklist: crypto/md5, crypto/sha1
+        - G502 # Import blocklist: crypto/des, crypto/rc4
+        - G503 # Import blocklist: crypto/md5, crypto/sha1
+        - G504 # Import blocklist: net/http/cgi
+        - G601 # Implicit memory aliasing in range statement
+
+formatters:
+  enable:
     - gofmt
     - goimports
-    - gosec
-
-linters-settings:
-  goimports:
-    # Put local imports under third-party imports
-    local-prefixes: golang-sample
-
-  govet:
-    # Enable all analyzers
-    enable-all: true
-    check-shadowing: true
-
-  errcheck:
-    # Report about not checking of errors in type assertions
-    check-type-assertions: true
-    # Report about assignment of errors to blank identifier
-    check-blank: true
-
-  gosec:
-    # Select which checks to run (all security checks)
-    includes:
-      - G101 # Look for hard coded credentials
-      - G102 # Bind to all interfaces
-      - G103 # Audit the use of unsafe block
-      - G104 # Audit errors not checked
-      - G107 # Url provided to HTTP request as taint input
-      - G108 # Profiling endpoint automatically exposed on /debug/pprof
-      - G109 # Convert String to Int with strconv.Atoi
-      - G110 # Potential DoS vulnerability via decompression bomb
-      - G111 # Potential directory traversal
-      - G201 # SQL query construction using format string
-      - G202 # SQL query construction using string concatenation
-      - G203 # Use of unescaped data in HTML templates
-      - G204 # Audit use of command execution
-      - G301 # Poor file permissions used when creating a directory
-      - G302 # Poor file permissions used with chmod
-      - G303 # Creating tempfile using a predictable path
-      - G304 # File path provided as taint input
-      - G306 # Poor file permissions used when writing to a new file
-      - G307 # Deferring a method which returns an error
-      - G401 # Detect the usage of DES, RC4, MD5 or SHA1
-      - G402 # Look for bad TLS connection settings
-      - G403 # Ensure minimum RSA key length of 2048 bits
-      - G404 # Insecure random number source (rand)
-      - G405 # Minimize the use of exec.Command
-      - G501 # Import blocklist: crypto/md5, crypto/sha1
-      - G502 # Import blocklist: crypto/des, crypto/rc4
-      - G503 # Import blocklist: crypto/md5, crypto/sha1
-      - G504 # Import blocklist: net/http/cgi
-      - G601 # Implicit memory aliasing of items from a range statement
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/haipham22/govern
+        - github.com/haipham22/golang-sample
 
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
-  # Excluding some issues that are not relevant
+  exclude-dirs:
+    - vendor
+    - testdata
+    - generated
+  exclude-files:
+    - ".*\\.gen\\.go$"
   exclude-rules:
-    # Exclude some linters from running on tests files
+    # Relax some linters on test files.
     - path: _test\.go
       linters:
         - gosec
         - errcheck
-
-output:
-  # Format: colored-line-number|json|tab|checkstyle|code-climate
-  format: colored-line-number
-  # Print lines of code with issue
-  print-issued-lines: true
-  # Print linter name in the end of issue text
-  print-linter-name: true
-  # Make issues output unique by line
-  uniq-by-line: true
-  # Sort results by: filepath, line and column
-  sort-results: true

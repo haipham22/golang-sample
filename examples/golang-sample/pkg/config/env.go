@@ -5,8 +5,9 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/haipham22/govern/config"
 	"go.uber.org/zap"
+
+	"github.com/haipham22/govern/config"
 )
 
 // EnvConfigMap defines the application configuration structure

@@ -6,11 +6,12 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	apperrors "github.com/haipham22/golang-sample/internal/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+
+	apperrors "github.com/haipham22/golang-sample/internal/errors"
 
 	storageMocks "github.com/haipham22/golang-sample/internal/mocks/storage"
 	"github.com/haipham22/golang-sample/internal/model"
@@ -212,7 +213,7 @@ func TestService_Login_Errors(t *testing.T) {
 			setupMock: func(m *storageMocks.MockStorage) {
 				m.EXPECT().FindUserByUsernameWithPassword(mock.Anything, "testuser").Return(nil, "", assert.AnError)
 			},
-			wantErr: nil, // Service wraps storage errors in ErrorWithCode
+			wantErr: nil, // Service wraps storage errors in apperrors.Error
 		},
 	}
 
@@ -238,7 +239,7 @@ func TestService_Login_Errors(t *testing.T) {
 			if tt.wantErr != nil {
 				assert.Equal(t, tt.wantErr, err)
 			} else {
-				// Service wraps storage errors in ErrorWithCode
+				// Service wraps storage errors in apperrors.Error
 				var govErr *apperrors.Error
 				assert.ErrorAs(t, err, &govErr)
 				assert.Equal(t, apperrors.CodeInternal, govErr.Code)

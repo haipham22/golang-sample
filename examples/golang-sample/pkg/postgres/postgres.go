@@ -3,8 +3,9 @@ package postgres
 import (
 	"time"
 
-	governpostgres "github.com/haipham22/govern/database/postgres"
 	"gorm.io/gorm"
+
+	governpostgres "github.com/haipham22/govern/database/postgres"
 )
 
 // Config holds database configuration

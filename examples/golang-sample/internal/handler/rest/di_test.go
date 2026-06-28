@@ -3,8 +3,9 @@ package rest
 import (
 	"testing"
 
-	"github.com/haipham22/golang-sample/pkg/config"
 	"go.uber.org/zap"
+
+	"github.com/haipham22/golang-sample/pkg/config"
 )
 
 // TestNew_MissingJWTSecret verifies the config guard fails before any DB

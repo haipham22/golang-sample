@@ -6,9 +6,10 @@ import (
 	"syscall"
 	"time"
 
-	govern "github.com/haipham22/govern/graceful"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
+
+	govern "github.com/haipham22/govern/graceful"
 
 	restHandler "github.com/haipham22/golang-sample/internal/handler/rest"
 	"github.com/haipham22/golang-sample/pkg/config"
