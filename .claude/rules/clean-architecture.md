@@ -4,6 +4,13 @@
 
 Based on bxcodec/go-clean-arch + Clean Architecture principles.
 
+> **Naming note (sample app):** the canonical layer names below are the
+> standard for new packages. The `examples/golang-sample/` app uses
+> equivalent names mapping to the same layers — `model/` = `domain/`,
+> `service/` = `usecase/`, `storage/` = `repository/`, and manual DI lives
+> in `internal/handler/rest/di.go` (no `bootstrap/` package). The dependency
+> rule is identical; only the package names differ.
+
 ### domain/ (INNER LAYER - Enterprise Business Rules)
 
 **Location:** `internal/domain/`
